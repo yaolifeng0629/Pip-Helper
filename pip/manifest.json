@@ -17,11 +17,11 @@
   "action": {
     "default_popup": "entrypoints/popup/index.html",
     "default_icon": {
-      "16": "public/icon/16.png",
-      "32": "public/icon/32.png",
-      "48": "public/icon/48.png",
-      "96": "public/icon/96.png",
-      "128": "public/icon/128.png"
+      "16": "public/icon/icon-active16.png",
+      "32": "public/icon/icon-active32.png",
+      "48": "public/icon/icon-active48.png",
+      "96": "public/icon/icon-active96.png",
+      "128": "public/icon/icon-active128.png"
     }
   },
   "commands": {
