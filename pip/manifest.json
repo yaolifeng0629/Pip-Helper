@@ -1,0 +1,42 @@
+{
+  "name": "wxt-vue-starter",
+  "description": "manifest.json description",
+  "version": "0.0.0",
+  "manifest_version": 3,
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "entrypoints/background.ts"
+  },
+  "action": {
+    "default_popup": "entrypoints/popup/index.html",
+    "default_icon": {
+      "16": "public/icon/16.png",
+      "32": "public/icon/32.png",
+      "48": "public/icon/48.png",
+      "96": "public/icon/96.png",
+      "128": "public/icon/128.png"
+    }
+  },
+  "commands": {
+    "activate-pip": {
+      "suggested_key": {
+        "default": "Alt+P",
+        "mac": "Alt+P"
+      },
+      "description": "一键激活画中画"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["entrypoints/content.ts"]
+    }
+  ]
+}
