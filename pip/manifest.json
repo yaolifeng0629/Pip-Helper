@@ -1,7 +1,7 @@
 {
-  "name": "wxt-vue-starter",
+  "name": "Video-Pip",
   "description": "manifest.json description",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "manifest_version": 3,
   "permissions": [
     "scripting",
@@ -17,11 +17,11 @@
   "action": {
     "default_popup": "entrypoints/popup/index.html",
     "default_icon": {
-      "16": "public/icon/icon-active16.png",
-      "32": "public/icon/icon-active32.png",
-      "48": "public/icon/icon-active48.png",
-      "96": "public/icon/icon-active96.png",
-      "128": "public/icon/icon-active128.png"
+      "16": "public/icon/icon16.png",
+      "32": "public/icon/icon32.png",
+      "48": "public/icon/icon48.png",
+      "96": "public/icon/icon96.png",
+      "128": "public/icon/icon128.png"
     }
   },
   "commands": {

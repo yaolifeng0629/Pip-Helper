@@ -4,9 +4,19 @@ import Plyr from 'plyr';
  * 获取当前页面所有可用的 video 元素
  */
 function getPlayableVideos(): HTMLVideoElement[] {
-  return Array.from(document.querySelectorAll('video')).filter(
-    v => v.readyState > 0 && !v.disablePictureInPicture
-  );
+  // 兼容微信公众号文章中的视频
+  let videos = Array.from(document.querySelectorAll('video'));
+  // 微信公众号文章有些视频 readyState 可能为 0，但依然可用，放宽条件
+  videos = videos.filter(v => !v.disablePictureInPicture && (v.readyState > 0 || v.src || v.currentSrc));
+  // 兼容微信文章中通过 .video_iframe、.video_area、.js_video_area 包裹的 video
+  const wxContainers = document.querySelectorAll('.video_iframe, .video_area, .js_video_area');
+  wxContainers.forEach(container => {
+    const v = container.querySelector('video');
+    if (v && !videos.includes(v) && !v.disablePictureInPicture) {
+      videos.push(v);
+    }
+  });
+  return videos;
 }
 
 /**
@@ -86,6 +96,10 @@ function enhanceAllVideos() {
  */
 let pipVideo: HTMLVideoElement | null = null;
 let lastState = { currentTime: 0, volume: 1, playbackRate: 1 };
+let lastContextMenuVideo: HTMLVideoElement | null = null;
+/**
+ * 同步当前视频状态到画中画
+ */
 function syncToPiP(video: HTMLVideoElement) {
   lastState = {
     currentTime: video.currentTime,
@@ -93,6 +107,9 @@ function syncToPiP(video: HTMLVideoElement) {
     playbackRate: video.playbackRate,
   };
 }
+/**
+ * 从画中画同步状态到视频
+ */
 function syncFromPiP(video: HTMLVideoElement) {
   video.currentTime = lastState.currentTime;
   video.volume = lastState.volume;
@@ -108,6 +125,30 @@ export default defineContentScript({
     const observer = new MutationObserver(() => enhanceAllVideos());
     observer.observe(document.body, { childList: true, subtree: true });
 
+    // 为所有 video 添加 contextmenu 监听
+    function bindContextMenuToVideos() {
+      getAllFramesVideos().forEach(video => {
+        if (!(video as any)._pipContextMenuBound) {
+          video.addEventListener('contextmenu', () => {
+            lastContextMenuVideo = video;
+          });
+          (video as any)._pipContextMenuBound = true;
+        }
+        // 兼容微信视频容器：为父容器也绑定 contextmenu
+        const wxParent = video.closest('.video_iframe, .video_area, .js_video_area');
+        if (wxParent && !(wxParent as any)._pipContextMenuBound) {
+          wxParent.addEventListener('contextmenu', () => {
+            lastContextMenuVideo = video;
+          });
+          (wxParent as any)._pipContextMenuBound = true;
+        }
+      });
+    }
+    bindContextMenuToVideos();
+    // 监听 DOM 变化时也绑定
+    const observer2 = new MutationObserver(() => bindContextMenuToVideos());
+    observer2.observe(document.body, { childList: true, subtree: true });
+
     // 支持快捷键返回原始标签页
     window.addEventListener('keydown', (e) => {
       if ((e.altKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
@@ -117,6 +158,30 @@ export default defineContentScript({
 
     // 监听消息，实现画中画激活、多视频选择、探测等
     browser.runtime.onMessage.addListener((msg) => {
+      // 只对最近右键的视频触发画中画
+      if (msg?.type === 'toggle-pip') {
+        if (lastContextMenuVideo && !lastContextMenuVideo.disablePictureInPicture) {
+          lastContextMenuVideo.requestPictureInPicture().catch(() => {
+            browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
+          });
+          return;
+        }
+        // fallback: 兼容原有逻辑
+        const videos = getAllFramesVideos();
+        if (videos.length === 0) {
+          browser.runtime.sendMessage({ type: 'pip-error', reason: 'no-video' });
+          return;
+        }
+        const playing = videos.find(v => !v.paused && !v.ended);
+        const target = playing || videos[0];
+        if (target) {
+          target.requestPictureInPicture().catch(() => {
+            browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
+          });
+        }
+        return;
+      }
+      // 激活画中画
       if (msg === 'activate-pip') {
         const videos = getAllFramesVideos();
         if (videos.length === 0) {

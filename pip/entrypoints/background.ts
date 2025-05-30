@@ -2,10 +2,10 @@ export default defineBackground(() => {
   // PiP 激活/未激活图标路径
   const ICON_PATH = {
     normal: {
-      16: 'public/icon/16.png',
-      32: 'public/icon/32.png',
-      48: 'public/icon/48.png',
-      128: 'public/icon/128.png',
+      16: 'public/icon/icon16.png',
+      32: 'public/icon/icon32.png',
+      48: 'public/icon/icon48.png',
+      128: 'public/icon/icon128.png',
     },
     active: {
       16: 'public/icon/icon-active16.png',
