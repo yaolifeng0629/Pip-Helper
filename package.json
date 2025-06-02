@@ -1,8 +1,8 @@
 {
-  "name": "Video-Pip",
-  "description": "manifest.json description",
+  "name": "pip-assistant",
+  "description": "一键激活网页视频画中画模式，支持多平台视频网站",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",

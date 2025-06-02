@@ -1,245 +1,153 @@
+/**
+ * 背景脚本 - 管理浏览器扩展的核心功能
+ *
+ * 负责处理：
+ * 1. 工具栏图标点击事件
+ * 2. 快捷键命令
+ * 3. 右键菜单
+ * 4. 图标状态更新
+ * 5. 消息通信
+ */
+
+// 图标路径配置
+const ICON_PATH = {
+  normal: {
+    16: 'public/icon/icon16.png',
+    32: 'public/icon/icon32.png',
+    48: 'public/icon/icon48.png',
+    128: 'public/icon/icon128.png',
+  },
+  active: {
+    16: 'public/icon/icon-active16.png',
+    32: 'public/icon/icon-active32.png',
+    48: 'public/icon/icon-active48.png',
+    128: 'public/icon/icon-active128.png',
+  },
+};
+
 export default defineBackground(() => {
-    console.log('Video-PiP 后台服务启动');
+  /**
+   * 处理工具栏图标点击事件
+   * @param tab 当前标签页
+   */
+  async function handleToolbarClick(tab: any): Promise<void> {
+    if (!tab.id) return;
+    await browser.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
+  }
 
-    // PiP 激活/未激活图标路径
-    const ICON_PATH = {
-        normal: {
-            16: 'icon/icon16.png',
-            32: 'icon/icon32.png',
-            48: 'icon/icon48.png',
-            128: 'icon/icon128.png',
-        },
-        active: {
-            16: 'icon/icon-active16.png',
-            32: 'icon/icon-active32.png',
-            48: 'icon/icon-active48.png',
-            128: 'icon/icon-active128.png',
-        },
-    };
+  /**
+   * 处理来自内容脚本的消息
+   * @param msg 消息对象
+   * @param sender 发送者信息
+   */
+  function handleRuntimeMessage(msg: any, sender: any): void {
+    // 处理画中画错误
+    if (msg?.type === 'pip-error') {
+      let reason = '未知错误';
+      if (msg.reason === 'no-video') reason = '未检测到可用视频';
+      if (msg.reason === 'not-allowed') reason = '该视频不支持画中画';
 
-    /**
-     * 处理工具栏点击事件 - 激活画中画
-     */
-    async function handleToolbarClick(tab: chrome.tabs.Tab) {
-        if (!tab.id) {
-            console.warn('无效的标签页ID');
-            return;
-        }
-
-        try {
-            await chrome.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
-        } catch (error) {
-            console.error('发送消息到内容脚本失败:', error);
-            // 尝试注入内容脚本
-            try {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    files: ['content-scripts/content.js'],
-                });
-                // 重新发送消息
-                await chrome.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
-            } catch (injectError) {
-                console.error('注入内容脚本失败:', injectError);
-            }
-        }
+      if (sender.tab?.id) {
+        browser.tabs.sendMessage(sender.tab.id, { type: 'show-toast', reason });
+      }
     }
 
-    /**
-     * 处理来自内容脚本的消息
-     */
-    function handleRuntimeMessage(
-        message: any,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: any) => void
-    ) {
-        console.log('收到消息:', message, '来自:', sender.tab?.url);
-
-        // 处理画中画错误
-        if (message?.type === 'pip-error') {
-            let reason = '未知错误';
-            switch (message.reason) {
-                case 'no-video':
-                    reason = '未检测到可用视频';
-                    break;
-                case 'not-allowed':
-                    reason = '该视频不支持画中画';
-                    break;
-                case 'security-error':
-                    reason = '安全限制，无法启动画中画';
-                    break;
-            }
-
-            if (sender.tab?.id) {
-                chrome.tabs
-                    .sendMessage(sender.tab.id, {
-                        type: 'show-toast',
-                        message: reason,
-                    })
-                    .catch(err => console.warn('发送错误提示失败:', err));
-            }
-        }
-
-        // 处理快捷键触发的画中画
-        else if (message?.type === 'shortcut-pip' && sender.tab?.id) {
-            chrome.tabs
-                .sendMessage(sender.tab.id, { type: 'toggle-pip' })
-                .catch(err => console.warn('快捷键触发画中画失败:', err));
-        }
-
-        // 处理画中画状态变化
-        else if (message?.type === 'pip-status-changed' && sender.tab?.id) {
-            updateIcon(sender.tab.id, message.active);
-        }
-
-        // 处理视频检测结果
-        else if (message?.type === 'video-detected' && sender.tab?.id) {
-            updateBadge(sender.tab.id, message.count);
-        }
-
-        // 处理视频探测结果
-        else if (message?.type === 'probe-result') {
-            sendResponse(message);
-        }
-
-        return true; // 保持消息通道开启
+    // 处理快捷键触发的画中画
+    if (msg?.type === 'shortcut-pip' && sender.tab?.id) {
+      browser.tabs.sendMessage(sender.tab.id, { type: 'toggle-pip' });
     }
 
-    /**
-     * 处理快捷键命令
-     */
-    async function handleCommand(command: string) {
-        console.log('触发快捷键命令:', command);
-
-        if (command === 'activate-pip') {
-            try {
-                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-                if (tab?.id) {
-                    await chrome.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
-                }
-            } catch (error) {
-                console.error('快捷键激活画中画失败:', error);
-            }
-        } else if (command === 'open-settings') {
-            chrome.runtime.openOptionsPage?.();
-        }
+    // 更新画中画状态图标
+    if (msg?.type === 'pip-status-changed' && sender.tab?.id) {
+      updateIcon(sender.tab.id, msg.active);
     }
 
-    /**
-     * 创建右键上下文菜单
-     */
-    async function createContextMenus() {
-        try {
-            await chrome.contextMenus.removeAll();
-
-            // 视频右键菜单
-            chrome.contextMenus.create({
-                id: 'pip-toggle',
-                title: '画中画播放',
-                contexts: ['video'],
-            });
-
-            // 插件图标右键菜单
-            chrome.contextMenus.create({
-                id: 'pip-settings',
-                title: '插件设置',
-                contexts: ['action'],
-            });
-
-            console.log('右键菜单创建成功');
-        } catch (error) {
-            console.error('创建右键菜单失败:', error);
-        }
+    // 更新视频数量角标
+    if (msg?.type === 'video-detected' && sender.tab?.id) {
+      updateBadge(sender.tab.id, msg.count);
     }
+  }
 
-    /**
-     * 处理右键菜单点击
-     */
-    async function handleContextMenuClick(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) {
+  /**
+   * 处理快捷键命令
+   * @param command 命令名称
+   */
+  async function handleCommand(command: string): Promise<void> {
+    // 激活画中画快捷键
+    if (command === 'activate-pip') {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        await browser.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
+      }
+    }
+  }
+
+  /**
+   * 创建右键菜单
+   */
+  async function createContextMenus(): Promise<void> {
+    try {
+      await browser.contextMenus.removeAll();
+
+      // 视频上的右键菜单
+      browser.contextMenus.create({
+        id: 'pip-toggle',
+        title: '画中画播放',
+        contexts: ['video'],
+      });
+
+      // 监听右键菜单点击
+      browser.contextMenus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === 'pip-toggle' && tab?.id) {
-            try {
-                await chrome.tabs.sendMessage(tab.id, {
-                    type: 'toggle-pip',
-                    contextMenu: true,
-                });
-            } catch (error) {
-                console.error('右键菜单激活画中画失败:', error);
-            }
-        } else if (info.menuItemId === 'pip-settings') {
-            chrome.runtime.openOptionsPage?.();
+          await browser.tabs.sendMessage(tab.id, { type: 'toggle-pip' });
         }
+      });
+    } catch (error) {
+      console.error('创建右键菜单失败', error);
     }
+  }
 
-    /**
-     * 动态切换插件图标状态
-     */
-    async function updateIcon(tabId: number, pipActive: boolean) {
-        try {
-            await chrome.action.setIcon({
-                path: pipActive ? ICON_PATH.active : ICON_PATH.normal,
-                tabId,
-            });
-            console.log(`图标状态更新: ${pipActive ? '激活' : '普通'}`);
-        } catch (error) {
-            console.warn('更新图标失败:', error);
-        }
+  /**
+   * 更新扩展图标状态
+   * @param tabId 标签页ID
+   * @param pipActive 画中画是否激活
+   */
+  async function updateIcon(tabId: number, pipActive: boolean): Promise<void> {
+    try {
+      await browser.action.setIcon({
+        path: pipActive ? ICON_PATH.active : ICON_PATH.normal,
+        tabId,
+      });
+    } catch (error) {
+      // 某些环境可能不支持 setIcon
+      console.error('更新图标失败:', error);
     }
+  }
 
-    /**
-     * 动态设置徽章数字
-     */
-    async function updateBadge(tabId: number, count: number) {
-        try {
-            await chrome.action.setBadgeText({
-                text: count > 0 ? String(count) : '',
-                tabId,
-            });
+  /**
+   * 更新扩展角标
+   * @param tabId 标签页ID
+   * @param count 视频数量
+   */
+  async function updateBadge(tabId: number, count: number): Promise<void> {
+    try {
+      await browser.action.setBadgeText({
+        text: count > 0 ? String(count) : '',
+        tabId,
+      });
 
-            if (count > 0) {
-                await chrome.action.setBadgeBackgroundColor({
-                    color: '#4285f4',
-                    tabId,
-                });
-            }
-
-            console.log(`徽章更新: ${count} 个视频`);
-        } catch (error) {
-            console.warn('更新徽章失败:', error);
-        }
+      await browser.action.setBadgeBackgroundColor({
+        color: '#4285f4',
+        tabId,
+      });
+    } catch (error) {
+      console.error('更新角标失败:', error);
     }
+  }
 
-    /**
-     * 处理标签页更新 - 重置图标状态
-     */
-    function handleTabUpdate(tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) {
-        if (changeInfo.status === 'complete') {
-            // 页面加载完成，重置图标状态
-            updateIcon(tabId, false);
-            updateBadge(tabId, 0);
-        }
-    }
-
-    /**
-     * 处理标签页激活 - 更新当前标签页状态
-     */
-    async function handleTabActivated(activeInfo: chrome.tabs.TabActiveInfo) {
-        try {
-            // 可以在这里检查当前标签页的视频状态
-            await chrome.tabs.sendMessage(activeInfo.tabId, { type: 'probe-video' });
-        } catch (error) {
-            // 标签页可能还没有内容脚本，忽略错误
-        }
-    }
-
-    // 注册事件监听器
-    chrome.action.onClicked.addListener(handleToolbarClick);
-    chrome.runtime.onMessage.addListener(handleRuntimeMessage);
-    chrome.commands.onCommand.addListener(handleCommand);
-    chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
-    chrome.tabs.onUpdated.addListener(handleTabUpdate);
-    chrome.tabs.onActivated.addListener(handleTabActivated);
-
-    // 初始化
-    createContextMenus();
-
-    console.log('Video-PiP 后台服务初始化完成');
+  // 初始化：注册事件监听器
+  browser.action.onClicked.addListener(handleToolbarClick);
+  browser.runtime.onMessage.addListener(handleRuntimeMessage);
+  browser.commands.onCommand.addListener(handleCommand);
+  createContextMenus();
 });
