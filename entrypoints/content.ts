@@ -1,150 +1,41 @@
-import Plyr from 'plyr';
-
 /**
- * 获取当前页面所有可用的 video 元素
+ * 内容脚本 - 负责与页面交互并操作视频元素
+ *
+ * 功能：
+ * 1. 检测和增强页面中的视频
+ * 2. 处理画中画激活/退出
+ * 3. 同步视频状态
+ * 4. 处理用户交互（右键菜单、快捷键等）
+ * 5. 提供多视频选择功能
  */
-function getPlayableVideos(): HTMLVideoElement[] {
-  // 兼容微信公众号文章中的视频
-  let videos = Array.from(document.querySelectorAll('video'));
-  // 微信公众号文章有些视频 readyState 可能为 0，但依然可用，放宽条件
-  videos = videos.filter(v => !v.disablePictureInPicture && (v.readyState > 0 || v.src || v.currentSrc));
-  // 兼容微信文章中通过 .video_iframe、.video_area、.js_video_area 包裹的 video
-  const wxContainers = document.querySelectorAll('.video_iframe, .video_area, .js_video_area');
-  wxContainers.forEach(container => {
-    const v = container.querySelector('video');
-    if (v && !videos.includes(v) && !v.disablePictureInPicture) {
-      videos.push(v);
-    }
-  });
-  return videos;
-}
+import { getAllFramesVideos, getPlayableVideos, findBestVideoForPip } from '../utils/video';
+import { showVideoPicker, showToast } from '../utils/ui';
+import { enhanceWithPlyr, syncToPiP, syncFromPiP, setPipVideo, enhanceAllVideos, bindContextMenuToVideo } from '../utils/videoEnhancer';
 
-/**
- * 获取当前页面及所有同源 iframe 内的可用 video 元素
- */
-function getAllFramesVideos(): HTMLVideoElement[] {
-  const videos = getPlayableVideos();
-  document.querySelectorAll('iframe').forEach(iframe => {
-    try {
-      const win = iframe.contentWindow;
-      if (win && win.document) {
-        const innerVideos = Array.from(win.document.querySelectorAll('video')).filter(
-          v => v.readyState > 0 && !v.disablePictureInPicture
-        );
-        videos.push(...innerVideos);
-      }
-    } catch (e) {
-      // 跨域 iframe 无法访问，忽略
-    }
-  });
-  return videos;
-}
-
-/**
- * 弹出多视频选择器，供用户手动选择要画中画的视频
- */
-function showVideoPicker(videos: HTMLVideoElement[]) {
-  if (document.getElementById('pip-video-picker')) return;
-  const picker = document.createElement('div');
-  picker.id = 'pip-video-picker';
-  picker.style.cssText = `position:fixed;z-index:999999;right:24px;bottom:24px;background:#fff;border-radius:8px;box-shadow:0 2px 16px #0002;padding:16px 20px;min-width:220px;max-width:320px;font-size:15px;line-height:2;`;
-  picker.innerHTML = `<b>选择要画中画的视频：</b><br>`;
-  videos.forEach((v, i) => {
-    const label = v.currentSrc || v.src || `视频${i+1}`;
-    const btn = document.createElement('button');
-    btn.textContent = label.length > 60 ? label.slice(0, 60) + '...' : label;
-    btn.style.cssText = 'display:block;width:100%;margin:6px 0;padding:6px 8px;border-radius:5px;border:none;background:#42b883;color:#fff;cursor:pointer;text-align:left;';
-    btn.onclick = () => {
-      v.requestPictureInPicture();
-      picker.remove();
-    };
-    picker.appendChild(btn);
-  });
-  const cancel = document.createElement('button');
-  cancel.textContent = '取消';
-  cancel.style.cssText = 'display:block;width:100%;margin:6px 0;padding:6px 8px;border-radius:5px;border:none;background:#aaa;color:#fff;cursor:pointer;text-align:left;';
-  cancel.onclick = () => picker.remove();
-  picker.appendChild(cancel);
-  document.body.appendChild(picker);
-}
-
-/**
- * 用 plyr 增强 video 元素，支持自定义控件、预览图等
- */
-function enhanceWithPlyr(video: HTMLVideoElement) {
-  if ((video as any)._plyr) return;
-  const plyr = new Plyr(video, {
-    controls: [
-      'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'pip', 'fullscreen'
-    ],
-    tooltips: { controls: true, seek: true },
-    previewThumbnails: { enabled: true },
-    settings: ['quality', 'speed', 'loop'],
-  });
-  (video as any)._plyr = plyr;
-}
-
-/**
- * 初始化并增强所有可用 video
- */
-function enhanceAllVideos() {
-  getAllFramesVideos().forEach(enhanceWithPlyr);
-}
-
-/**
- * 画中画状态同步相关
- */
-let pipVideo: HTMLVideoElement | null = null;
-let lastState = { currentTime: 0, volume: 1, playbackRate: 1 };
+// 记录最近右键点击的视频元素
 let lastContextMenuVideo: HTMLVideoElement | null = null;
-/**
- * 同步当前视频状态到画中画
- */
-function syncToPiP(video: HTMLVideoElement) {
-  lastState = {
-    currentTime: video.currentTime,
-    volume: video.volume,
-    playbackRate: video.playbackRate,
-  };
-}
-/**
- * 从画中画同步状态到视频
- */
-function syncFromPiP(video: HTMLVideoElement) {
-  video.currentTime = lastState.currentTime;
-  video.volume = lastState.volume;
-  video.playbackRate = lastState.playbackRate;
-}
 
 export default defineContentScript({
   matches: ['<all_urls>'],
   main() {
     // 初始化所有视频播放器
-    enhanceAllVideos();
+    enhanceAllVideos(getAllFramesVideos);
+
     // 监听 DOM 变化自动增强新 video
-    const observer = new MutationObserver(() => enhanceAllVideos());
+    const observer = new MutationObserver(() => enhanceAllVideos(getAllFramesVideos));
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 为所有 video 添加 contextmenu 监听
     function bindContextMenuToVideos() {
       getAllFramesVideos().forEach(video => {
-        if (!(video as any)._pipContextMenuBound) {
-          video.addEventListener('contextmenu', () => {
-            lastContextMenuVideo = video;
-          });
-          (video as any)._pipContextMenuBound = true;
-        }
-        // 兼容微信视频容器：为父容器也绑定 contextmenu
-        const wxParent = video.closest('.video_iframe, .video_area, .js_video_area');
-        if (wxParent && !(wxParent as any)._pipContextMenuBound) {
-          wxParent.addEventListener('contextmenu', () => {
-            lastContextMenuVideo = video;
-          });
-          (wxParent as any)._pipContextMenuBound = true;
-        }
+        bindContextMenuToVideo(video, (v) => {
+          lastContextMenuVideo = v;
+        });
       });
     }
+
     bindContextMenuToVideos();
+
     // 监听 DOM 变化时也绑定
     const observer2 = new MutationObserver(() => bindContextMenuToVideos());
     observer2.observe(document.body, { childList: true, subtree: true });
@@ -156,78 +47,324 @@ export default defineContentScript({
       }
     });
 
+    // 创建视频预览缩略图
+    function createVideoThumbnail(video: HTMLVideoElement): string {
+      try {
+        // 创建临时 canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 160;
+        canvas.height = 90;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return '';
+
+        // 绘制视频当前帧
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // 转为 data URL
+        return canvas.toDataURL('image/jpeg', 0.7);
+      } catch (e) {
+        console.error('创建视频缩略图失败:', e);
+        return '';
+      }
+    }
+
+    // 增强版视频选择器
+    function showEnhancedVideoPicker(videos: HTMLVideoElement[]) {
+      // 创建视频信息数组
+      const videoInfos = videos.map((video, index) => {
+        // 获取视频标题
+        let title = '';
+
+        // 尝试从不同属性获取标题
+        if (video.title) {
+          title = video.title;
+        } else if (video.getAttribute('aria-label')) {
+          title = video.getAttribute('aria-label') || '';
+        } else {
+          // 尝试从父元素获取标题
+          const parent = video.closest('[title], [aria-label]');
+          if (parent) {
+            title = parent.getAttribute('title') || parent.getAttribute('aria-label') || '';
+          }
+        }
+
+        // 如果没找到标题，使用默认标题
+        if (!title) {
+          title = `视频 ${index + 1}${video.currentTime > 0 ? ' (正在播放)' : ''}`;
+        }
+
+        // 获取视频尺寸
+        const width = video.videoWidth || video.clientWidth;
+        const height = video.videoHeight || video.clientHeight;
+
+        // 获取视频时长
+        const duration = video.duration;
+        const formattedDuration = isNaN(duration) ? '' : formatTime(duration);
+
+        // 创建缩略图
+        const thumbnail = createVideoThumbnail(video);
+
+        return {
+          video,
+          title,
+          dimensions: width && height ? `${width}x${height}` : '',
+          duration: formattedDuration,
+          thumbnail,
+          isPlaying: !video.paused && !video.ended
+        };
+      });
+
+      // 显示自定义选择器
+      showCustomVideoPicker(videoInfos);
+    }
+
+    // 格式化时间
+    function formatTime(seconds: number): string {
+      if (isNaN(seconds)) return '';
+
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // 自定义视频选择器
+    function showCustomVideoPicker(videoInfos: any[]) {
+      // 移除已有选择器
+      const existingPicker = document.getElementById('pip-video-picker');
+      if (existingPicker) existingPicker.remove();
+
+      // 创建选择器容器
+      const picker = document.createElement('div');
+      picker.id = 'pip-video-picker';
+      picker.style.cssText = `
+        position: fixed;
+        z-index: 999999;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        width: 480px;
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow-y: auto;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+
+      // 添加标题
+      const title = document.createElement('div');
+      title.style.cssText = `
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      `;
+      title.innerHTML = `<span>选择要画中画的视频</span>`;
+
+      // 添加关闭按钮
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.cssText = `
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #888;
+        padding: 0 8px;
+      `;
+      closeBtn.onclick = () => picker.remove();
+      title.appendChild(closeBtn);
+
+      picker.appendChild(title);
+
+      // 创建视频列表
+      const videoList = document.createElement('div');
+      videoList.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      `;
+
+      // 添加视频项
+      videoInfos.forEach((info, i) => {
+        const videoItem = document.createElement('div');
+        videoItem.style.cssText = `
+          background: ${info.isPlaying ? 'rgba(66, 184, 131, 0.1)' : '#f9f9f9'};
+          border: 1px solid ${info.isPlaying ? 'rgba(66, 184, 131, 0.3)' : '#eee'};
+          border-radius: 8px;
+          padding: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          ${info.isPlaying ? 'box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.2);' : ''}
+        `;
+        videoItem.onmouseover = () => {
+          videoItem.style.background = info.isPlaying ? 'rgba(66, 184, 131, 0.15)' : '#f0f0f0';
+        };
+        videoItem.onmouseout = () => {
+          videoItem.style.background = info.isPlaying ? 'rgba(66, 184, 131, 0.1)' : '#f9f9f9';
+        };
+
+        // 添加缩略图
+        let thumbnailHtml = '';
+        if (info.thumbnail) {
+          thumbnailHtml = `
+            <div style="
+              width: 100%;
+              height: 90px;
+              background-image: url('${info.thumbnail}');
+              background-size: cover;
+              background-position: center;
+              border-radius: 4px;
+              margin-bottom: 8px;
+              position: relative;
+            ">
+              ${info.duration ? `<span style="
+                position: absolute;
+                bottom: 4px;
+                right: 4px;
+                background: rgba(0,0,0,0.7);
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+              ">${info.duration}</span>` : ''}
+              ${info.isPlaying ? `<span style="
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                background: rgba(66, 184, 131, 0.9);
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+              ">正在播放</span>` : ''}
+            </div>
+          `;
+        }
+
+        // 视频信息
+        videoItem.innerHTML = `
+          ${thumbnailHtml}
+          <div style="font-weight: 500; margin-bottom: 4px; font-size: 14px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${info.title}
+          </div>
+          <div style="font-size: 12px; color: #888;">
+            ${info.dimensions ? `分辨率: ${info.dimensions}` : ''}
+          </div>
+        `;
+
+        // 点击激活画中画
+        videoItem.onclick = () => {
+          info.video.requestPictureInPicture().catch(() => {
+            showToast('无法激活画中画模式', 'error');
+          });
+          picker.remove();
+        };
+
+        videoList.appendChild(videoItem);
+      });
+
+      picker.appendChild(videoList);
+
+      // 添加到页面
+      document.body.appendChild(picker);
+
+      // 添加键盘导航
+      picker.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          picker.remove();
+        }
+      });
+    }
+
     // 监听消息，实现画中画激活、多视频选择、探测等
     browser.runtime.onMessage.addListener((msg) => {
-      // 只对最近右键的视频触发画中画
+      // 处理画中画切换
       if (msg?.type === 'toggle-pip') {
+        // 优先使用右键菜单选中的视频
         if (lastContextMenuVideo && !lastContextMenuVideo.disablePictureInPicture) {
           lastContextMenuVideo.requestPictureInPicture().catch(() => {
             browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
           });
           return;
         }
-        // fallback: 兼容原有逻辑
-        const videos = getAllFramesVideos();
-        if (videos.length === 0) {
+
+        // 如果没有右键选中的视频，则查找最佳视频
+        const bestVideo = findBestVideoForPip();
+        if (!bestVideo) {
           browser.runtime.sendMessage({ type: 'pip-error', reason: 'no-video' });
           return;
         }
-        const playing = videos.find(v => !v.paused && !v.ended);
-        const target = playing || videos[0];
-        if (target) {
-          target.requestPictureInPicture().catch(() => {
-            browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
-          });
-        }
+
+        bestVideo.requestPictureInPicture().catch(() => {
+          browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
+        });
         return;
       }
-      // 激活画中画
-      if (msg === 'activate-pip') {
-        const videos = getAllFramesVideos();
-        if (videos.length === 0) {
-          browser.runtime.sendMessage({ type: 'pip-error', reason: 'no-video' });
-          return;
-        }
-        // 优先选择正在播放的视频，否则选第一个
-        const playing = videos.find(v => !v.paused && !v.ended);
-        const target = playing || videos[0];
-        if (target) {
-          target.requestPictureInPicture().catch(() => {
-            browser.runtime.sendMessage({ type: 'pip-error', reason: 'not-allowed' });
-          });
-        }
-      }
+
       // 探测页面是否有可用视频
       else if (msg?.type === 'probe-video') {
         const videos = getPlayableVideos();
-        browser.runtime.sendMessage({ type: 'probe-result', hasVideo: videos.length > 0 });
-      } else if (msg?.type === 'show-video-picker') {
+        browser.runtime.sendMessage({
+          type: 'probe-result',
+          hasVideo: videos.length > 0,
+          count: videos.length
+        });
+      }
+
+      // 显示视频选择器
+      else if (msg?.type === 'show-video-picker') {
         const videos = getAllFramesVideos();
         if (videos.length === 0) {
           browser.runtime.sendMessage({ type: 'pip-error', reason: 'no-video' });
         } else if (videos.length === 1) {
           videos[0].requestPictureInPicture();
         } else {
-          showVideoPicker(videos);
+          // 使用增强版选择器
+          showEnhancedVideoPicker(videos);
         }
+      }
+
+      // 显示提示消息
+      else if (msg?.type === 'show-toast') {
+        showToast(msg.reason || '操作失败', 'error');
       }
     });
 
     // 画中画窗口与原视频状态同步
     document.addEventListener('enterpictureinpicture', (e: any) => {
       const video = e.target as HTMLVideoElement;
-      pipVideo = video;
+      setPipVideo(video);
       syncToPiP(video);
+
+      // 监听视频状态变化并同步
       video.addEventListener('timeupdate', () => syncToPiP(video), { passive: true });
       video.addEventListener('volumechange', () => syncToPiP(video), { passive: true });
       video.addEventListener('ratechange', () => syncToPiP(video), { passive: true });
+
+      // 通知背景脚本更新图标
+      browser.runtime.sendMessage({ type: 'pip-status-changed', active: true });
     });
+
     document.addEventListener('leavepictureinpicture', (e: any) => {
       const video = e.target as HTMLVideoElement;
-      if (pipVideo) {
-        syncFromPiP(video);
-        pipVideo = null;
-      }
+      syncFromPiP(video);
+      setPipVideo(null);
+
+      // 通知背景脚本更新图标
+      browser.runtime.sendMessage({ type: 'pip-status-changed', active: false });
     });
+
+    // 初始化时通知背景脚本页面中的视频数量
+    const videos = getPlayableVideos();
+    if (videos.length > 0) {
+      browser.runtime.sendMessage({ type: 'video-detected', count: videos.length });
+    }
   },
 });
+

@@ -1,7 +1,7 @@
 {
-  "name": "Video-Pip",
-  "description": "manifest.json description",
-  "version": "0.0.1",
+  "name": "画中画助手",
+  "description": "一键激活网页视频画中画模式，支持多平台视频网站",
+  "version": "1.0.0",
   "manifest_version": 3,
   "permissions": [
     "scripting",
@@ -31,6 +31,13 @@
         "mac": "Alt+P"
       },
       "description": "一键激活画中画"
+    },
+    "return-to-tab": {
+      "suggested_key": {
+        "default": "Alt+B",
+        "mac": "Alt+B"
+      },
+      "description": "返回原始标签页"
     }
   },
   "content_scripts": [
