@@ -15,29 +15,54 @@ const props = defineProps<Props>();
 
 <template>
   <div class="pip-status-container">
+    <!-- 状态信息 -->
+    <div class="pip-status-text" v-if="status">
+      <div class="pip-status-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </div>
+      {{ status }}
+    </div>
+
     <!-- 主按钮 -->
     <button class="pip-btn-main" @click="onActivatePip">
-      <svg class="pip-btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-        <rect x="11" y="11" width="7" height="5" rx="1" fill="currentColor"/>
-      </svg>
+      <div class="pip-btn-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+          <rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor"/>
+        </svg>
+      </div>
       一键画中画
     </button>
 
     <!-- 多视频选择按钮 -->
     <button v-if="videoCount > 1" class="pip-btn-select" @click="onShowVideoPicker">
-      <svg class="pip-btn-icon-small" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636l4.95 4.95z" fill="currentColor" />
-      </svg>
+      <div class="pip-btn-icon-small">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+          <rect x="10" y="10" width="8" height="6" rx="1" fill="currentColor"/>
+        </svg>
+      </div>
       选择视频 ({{ videoCount }})
     </button>
 
-    <!-- 状态信息 -->
-    <div class="pip-status-text" v-if="status">{{ status }}</div>
-
     <!-- 快捷键提示 -->
     <div class="pip-shortcut-tip">
-      快捷键: <kbd>Alt+P</kbd> | 返回原标签页: <kbd>Alt+B</kbd>
+      <div class="pip-shortcut-item">
+        <kbd>Alt+P</kbd>
+        <span>激活画中画</span>
+      </div>
+      <div class="pip-shortcut-item">
+        <kbd>Alt+B</kbd>
+        <span>返回原标签页</span>
+      </div>
+      <div class="pip-shortcut-item" v-if="videoCount > 1">
+        <kbd>←</kbd><kbd>→</kbd>
+        <span>切换视频</span>
+      </div>
     </div>
   </div>
 </template>
@@ -48,97 +73,130 @@ const props = defineProps<Props>();
   flex-direction: column;
   align-items: center;
   margin: 16px 0;
+  padding: 0 16px;
+}
+
+.pip-status-text {
+  width: 100%;
+  margin-bottom: 16px;
+  color: #4B5563;
+  font-size: 14px;
+  background: #F3F4F6;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.pip-status-icon {
+  margin-right: 8px;
+  color: #3B82F6;
+  display: flex;
+  align-items: center;
 }
 
 .pip-btn-main {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80%;
+  width: 100%;
   padding: 14px 32px;
-  font-size: 18px;
-  border-radius: 12px;
+  font-size: 16px;
+  border-radius: 10px;
   border: none;
-  background: linear-gradient(135deg, #42b883 0%, #347474 100%);
+  background: #3B82F6;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(66, 184, 131, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
 .pip-btn-main:hover {
+  background: #2563EB;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(66, 184, 131, 0.4);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .pip-btn-main:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 10px rgba(66, 184, 131, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .pip-btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   margin-right: 8px;
+  color: white;
 }
 
 .pip-btn-select {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   margin-top: 12px;
-  padding: 8px 16px;
+  padding: 10px 16px;
   font-size: 14px;
   border-radius: 8px;
-  border: none;
-  background: #f0f0f0;
-  color: #333;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  color: #4B5563;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pip-btn-select:hover {
-  background: #e0e0e0;
+  background: #F3F4F6;
+  border-color: #D1D5DB;
 }
 
 .pip-btn-icon-small {
   width: 16px;
   height: 16px;
   margin-right: 6px;
-}
-
-.pip-status-text {
-  margin-top: 16px;
-  color: #555;
-  font-size: 14px;
-  background: #f5f5f5;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border-left: 3px solid #42b883;
+  color: #4B5563;
 }
 
 .pip-shortcut-tip {
-  margin-top: 16px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.pip-shortcut-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
   font-size: 12px;
-  color: #888;
-  background: rgba(66, 184, 131, 0.08);
-  padding: 6px 12px;
-  border-radius: 6px;
+  color: #6B7280;
+}
+
+.pip-shortcut-item:last-child {
+  margin-bottom: 0;
+}
+
+.pip-shortcut-item span {
+  margin-left: 8px;
 }
 
 kbd {
-  background-color: #f7f7f7;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-  color: #333;
+  background-color: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  color: #4F46E5;
   display: inline-block;
   font-size: 11px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   line-height: 1.4;
-  margin: 0 0.1em;
-  padding: 0.1em 0.6em;
-  text-shadow: 0 1px 0 #fff;
+  margin: 0 2px;
+  min-width: 20px;
+  padding: 0.1em 0.5em;
+  text-align: center;
 }
 </style>
