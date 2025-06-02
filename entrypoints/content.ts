@@ -10,10 +10,12 @@
  */
 import { getAllFramesVideos, getPlayableVideos, findBestVideoForPip } from '../utils/video';
 import { showVideoPicker, showToast } from '../utils/ui';
-import { enhanceWithPlyr, syncToPiP, syncFromPiP, setPipVideo, enhanceAllVideos, bindContextMenuToVideo } from '../utils/videoEnhancer';
+import { enhanceWithPlyr, syncToPiP, syncFromPiP, setPipVideo, enhanceAllVideos, bindContextMenuToVideo, addPipControls, setupVideoSwitching } from '../utils/videoEnhancer';
 
 // 记录最近右键点击的视频元素
 let lastContextMenuVideo: HTMLVideoElement | null = null;
+// 记录页面中所有可用视频
+let availableVideos: HTMLVideoElement[] = [];
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -21,8 +23,21 @@ export default defineContentScript({
     // 初始化所有视频播放器
     enhanceAllVideos(getAllFramesVideos);
 
+    // 更新可用视频列表
+    function updateAvailableVideos() {
+      availableVideos = getPlayableVideos();
+      // 设置多视频切换功能
+      setupVideoSwitching(availableVideos);
+    }
+
+    // 初始化时更新可用视频
+    updateAvailableVideos();
+
     // 监听 DOM 变化自动增强新 video
-    const observer = new MutationObserver(() => enhanceAllVideos(getAllFramesVideos));
+    const observer = new MutationObserver(() => {
+      enhanceAllVideos(getAllFramesVideos);
+      updateAvailableVideos();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 为所有 video 添加 contextmenu 监听
@@ -271,6 +286,19 @@ export default defineContentScript({
 
       picker.appendChild(videoList);
 
+      // 添加提示信息
+      const tipText = document.createElement('div');
+      tipText.style.cssText = `
+        margin-top: 16px;
+        font-size: 13px;
+        color: #888;
+        text-align: center;
+      `;
+      tipText.innerHTML = `
+        <div>提示: 进入画中画后，可使用<kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">←</kbd> <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">→</kbd>方向键切换视频</div>
+      `;
+      picker.appendChild(tipText);
+
       // 添加到页面
       document.body.appendChild(picker);
 
@@ -341,6 +369,15 @@ export default defineContentScript({
       const video = e.target as HTMLVideoElement;
       setPipVideo(video);
       syncToPiP(video);
+
+      // 尝试添加画中画控件
+      try {
+        setTimeout(() => {
+          addPipControls();
+        }, 100);
+      } catch (error) {
+        console.error('添加画中画控件失败:', error);
+      }
 
       // 监听视频状态变化并同步
       video.addEventListener('timeupdate', () => syncToPiP(video), { passive: true });
