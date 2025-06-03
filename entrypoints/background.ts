@@ -12,16 +12,16 @@
 // 图标路径配置
 const ICON_PATH = {
   normal: {
-    16: 'public/icon/icon16.png',
-    32: 'public/icon/icon32.png',
-    48: 'public/icon/icon48.png',
-    128: 'public/icon/icon128.png',
+    16: 'icon/icon16.png',
+    32: 'icon/icon32.png',
+    48: 'icon/icon48.png',
+    128: 'icon/icon128.png',
   },
   active: {
-    16: 'public/icon/icon-active16.png',
-    32: 'public/icon/icon-active32.png',
-    48: 'public/icon/icon-active48.png',
-    128: 'public/icon/icon-active128.png',
+    16: 'icon/icon-active16.png',
+    32: 'icon/icon-active32.png',
+    48: 'icon/icon-active48.png',
+    128: 'icon/icon-active128.png',
   },
 };
 
