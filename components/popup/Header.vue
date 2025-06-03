@@ -19,7 +19,7 @@ const props = defineProps<Props>();
           <rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      画中画助手
+      <span class="pip-title-text">画中画助手</span>
     </div>
     <button class="pip-settings-btn" @click="onToggleSettings">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -36,36 +36,35 @@ const props = defineProps<Props>();
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #42b883 0%, #347474 100%);
-  border-radius: 12px 12px 0 0;
+  background: #3B82F6;
+  border-radius: 0;
   color: white;
-  box-shadow: 0 2px 10px rgba(66, 184, 131, 0.2);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
 }
 
 .pip-title {
   display: flex;
   align-items: center;
-  font-size: 20px;
+}
+
+.pip-title-text {
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .pip-logo-container {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   margin-right: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .pip-logo-svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   color: white;
 }
 
@@ -75,7 +74,7 @@ const props = defineProps<Props>();
   color: white;
   cursor: pointer;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,10 +83,10 @@ const props = defineProps<Props>();
 
 .pip-settings-btn:hover {
   background-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
+  transform: rotate(15deg);
 }
 
 .pip-settings-btn:active {
-  transform: translateY(1px);
+  transform: scale(0.95);
 }
 </style>
