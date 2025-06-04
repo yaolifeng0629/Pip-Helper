@@ -1827,8 +1827,8 @@ packages:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
 
-  vite-node@3.2.0:
-    resolution: {integrity: sha512-8Fc5Ko5Y4URIJkmMF/iFP1C0/OJyY+VGVe9Nw6WAdZyw4bTO+eVg9mwxWkQp/y8NnAoQY3o9KAvE1ZdA2v+Vmg==}
+  vite-node@3.2.1:
+    resolution: {integrity: sha512-V4EyKQPxquurNJPtQJRZo8hKOoKNBRIhxcDbQFPFig0JdoWcUhwRgK8yoCXXrfYVPKS6XwirGHPszLnR8FbjCA==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
@@ -1990,8 +1990,8 @@ packages:
   zip-dir@2.0.0:
     resolution: {integrity: sha512-uhlsJZWz26FLYXOD6WVuq+fIcZ3aBPGo/cFdiLlv3KNwpa52IF3ISV8fLhQLiqVu5No3VhlqlgthN6gehil1Dg==}
 
-  zod@3.25.49:
-    resolution: {integrity: sha512-JMMPMy9ZBk3XFEdbM3iL1brx4NUSejd6xr3ELrrGEfGb355gjhiAWtG3K5o+AViV/3ZfkIrCzXsZn6SbLwTR8Q==}
+  zod@3.25.50:
+    resolution: {integrity: sha512-VstOnRxf4tlSq0raIwbn0n+LA34SxVoZ8r3pkwSUM0jqNiA/HCMQEVjTuS5FZmHsge+9MDGTiAuHyml5T0um6A==}
 
 snapshots:
 
@@ -3392,7 +3392,7 @@ snapshots:
       open: 9.1.0
       ora: 6.3.1
       prompts: 2.4.2
-      zod: 3.25.49
+      zod: 3.25.50
     transitivePeerDependencies:
       - supports-color
 
@@ -3728,7 +3728,7 @@ snapshots:
 
   uuid@8.3.2: {}
 
-  vite-node@3.2.0(@types/node@22.15.29)(jiti@2.4.2):
+  vite-node@3.2.1(@types/node@22.15.29)(jiti@2.4.2):
     dependencies:
       cac: 6.7.14
       debug: 4.4.1
@@ -3899,7 +3899,7 @@ snapshots:
       scule: 1.3.0
       unimport: 5.0.1
       vite: 6.3.5(@types/node@22.15.29)(jiti@2.4.2)
-      vite-node: 3.2.0(@types/node@22.15.29)(jiti@2.4.2)
+      vite-node: 3.2.1(@types/node@22.15.29)(jiti@2.4.2)
       web-ext-run: 0.2.3
     transitivePeerDependencies:
       - '@types/node'
@@ -3963,4 +3963,4 @@ snapshots:
       async: 3.2.6
       jszip: 3.10.1
 
-  zod@3.25.49: {}
+  zod@3.25.50: {}
