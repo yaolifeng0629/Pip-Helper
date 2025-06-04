@@ -11,6 +11,7 @@
 import { getAllFramesVideos, getPlayableVideos, findBestVideoForPip } from '../utils/video';
 import { showVideoPicker, showToast } from '../utils/ui';
 import { enhanceWithPlyr, syncToPiP, syncFromPiP, setPipVideo, enhanceAllVideos, bindContextMenuToVideo, addPipControls, setupVideoSwitching } from '../utils/videoEnhancer';
+import { isUrlAllowed, getDomain } from '../utils/storage';
 
 // 记录最近右键点击的视频元素
 let lastContextMenuVideo: HTMLVideoElement | null = null;
@@ -72,6 +73,12 @@ export default defineContentScript({
         const ctx = canvas.getContext('2d');
         if (!ctx) return '';
 
+        // 确保视频有帧可以绘制
+        if (video.readyState === 0) {
+          // 如果视频尚未加载，尝试加载一帧
+          video.currentTime = 1; // 尝试跳到第1秒，避免黑屏
+        }
+
         // 绘制视频当前帧
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -97,9 +104,22 @@ export default defineContentScript({
           title = video.getAttribute('aria-label') || '';
         } else {
           // 尝试从父元素获取标题
-          const parent = video.closest('[title], [aria-label]');
+          const parent = video.closest('[title], [aria-label], [data-title]');
           if (parent) {
-            title = parent.getAttribute('title') || parent.getAttribute('aria-label') || '';
+            title = parent.getAttribute('title') ||
+                   parent.getAttribute('aria-label') ||
+                   parent.getAttribute('data-title') || '';
+          }
+
+          // 尝试从相邻元素获取标题
+          if (!title) {
+            const container = video.parentElement;
+            if (container) {
+              const heading = container.querySelector('h1, h2, h3, h4, h5, .title, [class*="title"]');
+              if (heading) {
+                title = heading.textContent || '';
+              }
+            }
           }
         }
 
@@ -153,55 +173,83 @@ export default defineContentScript({
       picker.id = 'pip-video-picker';
       picker.style.cssText = `
         position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
         z-index: 999999;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         padding: 20px;
-        width: 480px;
-        max-width: 90vw;
-        max-height: 80vh;
-        overflow-y: auto;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       `;
 
-      // 添加标题
-      const title = document.createElement('div');
-      title.style.cssText = `
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        color: #333;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      // 创建选择器内容
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: white;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        position: relative;
       `;
-      title.innerHTML = `<span>选择要画中画的视频</span>`;
+      picker.appendChild(content);
 
       // 添加关闭按钮
-      const closeBtn = document.createElement('button');
-      closeBtn.innerHTML = '&times;';
+      const closeBtn = document.createElement('div');
       closeBtn.style.cssText = `
-        background: none;
-        border: none;
-        font-size: 24px;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 24px;
+        height: 24px;
         cursor: pointer;
-        color: #888;
-        padding: 0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 18px;
+        font-weight: bold;
+        transition: all 0.2s;
       `;
+      closeBtn.innerHTML = '&times;';
       closeBtn.onclick = () => picker.remove();
-      title.appendChild(closeBtn);
+      closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#e5e7eb';
+        closeBtn.style.color = '#374151';
+      };
+      closeBtn.onmouseout = () => {
+        closeBtn.style.background = '#f3f4f6';
+        closeBtn.style.color = '#6b7280';
+      };
+      content.appendChild(closeBtn);
 
-      picker.appendChild(title);
+      // 标题
+      const title = document.createElement('h2');
+      title.style.cssText = `
+        margin: 0 0 16px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        padding-right: 32px;
+      `;
+      title.textContent = '选择要使用画中画模式的视频';
+      content.appendChild(title);
 
-      // 创建视频列表
+      // 视频列表
       const videoList = document.createElement('div');
       videoList.style.cssText = `
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 16px;
       `;
 
@@ -209,23 +257,42 @@ export default defineContentScript({
       videoInfos.forEach((info, i) => {
         const videoItem = document.createElement('div');
         videoItem.style.cssText = `
-          background: ${info.isPlaying ? 'rgba(66, 184, 131, 0.1)' : '#f9f9f9'};
-          border: 1px solid ${info.isPlaying ? 'rgba(66, 184, 131, 0.3)' : '#eee'};
+          background: #f9f9f9;
           border-radius: 8px;
           padding: 12px;
           cursor: pointer;
           transition: all 0.2s;
-          ${info.isPlaying ? 'box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.2);' : ''}
+          border: 1px solid #eee;
         `;
+
         videoItem.onmouseover = () => {
-          videoItem.style.background = info.isPlaying ? 'rgba(66, 184, 131, 0.15)' : '#f0f0f0';
-        };
-        videoItem.onmouseout = () => {
-          videoItem.style.background = info.isPlaying ? 'rgba(66, 184, 131, 0.1)' : '#f9f9f9';
+          videoItem.style.transform = 'translateY(-2px)';
+          videoItem.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          videoItem.style.borderColor = '#ddd';
         };
 
-        // 添加缩略图
-        let thumbnailHtml = '';
+        videoItem.onmouseout = () => {
+          videoItem.style.transform = 'none';
+          videoItem.style.boxShadow = 'none';
+          videoItem.style.borderColor = '#eee';
+        };
+
+        // 缩略图
+        let thumbnailHtml = `
+          <div style="
+            width: 100%;
+            height: 90px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+          ">无预览</div>
+        `;
+
         if (info.thumbnail) {
           thumbnailHtml = `
             <div style="
@@ -284,7 +351,7 @@ export default defineContentScript({
         videoList.appendChild(videoItem);
       });
 
-      picker.appendChild(videoList);
+      content.appendChild(videoList);
 
       // 添加提示信息
       const tipText = document.createElement('div');
@@ -297,7 +364,7 @@ export default defineContentScript({
       tipText.innerHTML = `
         <div>提示: 进入画中画后，可使用<kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">←</kbd> <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">→</kbd>方向键切换视频</div>
       `;
-      picker.appendChild(tipText);
+      content.appendChild(tipText);
 
       // 添加到页面
       document.body.appendChild(picker);
@@ -310,10 +377,24 @@ export default defineContentScript({
       });
     }
 
+    // 检查当前网站是否在黑名单中
+    async function checkIfDomainIsBlacklisted(): Promise<boolean> {
+      const url = window.location.href;
+      const allowed = await isUrlAllowed(url);
+      return !allowed;
+    }
+
     // 监听消息，实现画中画激活、多视频选择、探测等
-    browser.runtime.onMessage.addListener((msg) => {
+    browser.runtime.onMessage.addListener(async (msg) => {
       // 处理画中画切换
       if (msg?.type === 'toggle-pip') {
+        // 检查当前网站是否在黑名单中
+        const isBlacklisted = await checkIfDomainIsBlacklisted();
+        if (isBlacklisted) {
+          showToast('请将当前网站域名从黑名单中移除，再进行操作！', 'error');
+          return;
+        }
+
         // 优先使用右键菜单选中的视频
         if (lastContextMenuVideo && !lastContextMenuVideo.disablePictureInPicture) {
           lastContextMenuVideo.requestPictureInPicture().catch(() => {
@@ -338,15 +419,26 @@ export default defineContentScript({
       // 探测页面是否有可用视频
       else if (msg?.type === 'probe-video') {
         const videos = getPlayableVideos();
+
+        // 检查当前网站是否在黑名单中
+        const isBlacklisted = await checkIfDomainIsBlacklisted();
+
         browser.runtime.sendMessage({
           type: 'probe-result',
           hasVideo: videos.length > 0,
-          count: videos.length
+          count: isBlacklisted ? 0 : videos.length
         });
       }
 
       // 显示视频选择器
       else if (msg?.type === 'show-video-picker') {
+        // 检查当前网站是否在黑名单中
+        const isBlacklisted = await checkIfDomainIsBlacklisted();
+        if (isBlacklisted) {
+          showToast('请将当前网站域名从黑名单中移除，再进行操作！', 'error');
+          return;
+        }
+
         const videos = getAllFramesVideos();
         if (videos.length === 0) {
           browser.runtime.sendMessage({ type: 'pip-error', reason: 'no-video' });
@@ -398,10 +490,16 @@ export default defineContentScript({
     });
 
     // 初始化时通知背景脚本页面中的视频数量
-    const videos = getPlayableVideos();
-    if (videos.length > 0) {
-      browser.runtime.sendMessage({ type: 'video-detected', count: videos.length });
-    }
-  },
+    (async () => {
+      const videos = getPlayableVideos();
+
+      // 检查当前网站是否在黑名单中
+      const isBlacklisted = await checkIfDomainIsBlacklisted();
+
+      if (videos.length > 0 && !isBlacklisted) {
+        browser.runtime.sendMessage({ type: 'video-detected', count: videos.length });
+      }
+    })();
+  }
 });
 

@@ -14,7 +14,6 @@ const props = defineProps<Props>();
 // 组件状态
 const whitelist = ref<string[]>(props.settings.whitelist);
 const blacklist = ref<string[]>(props.settings.blacklist);
-const shortcut = ref<string>(props.settings.shortcut);
 const newDomain = ref('');
 const isWhitelistMode = ref(true);
 
@@ -46,11 +45,6 @@ function removeDomain(domain: string) {
     blacklist.value = blacklist.value.filter(d => d !== domain);
     props.onSave({ blacklist: blacklist.value });
   }
-}
-
-// 保存快捷键设置
-function saveShortcut() {
-  props.onSave({ shortcut: shortcut.value });
 }
 </script>
 
@@ -89,7 +83,7 @@ function saveShortcut() {
       <div class="pip-domain-list" v-if="isWhitelistMode">
         <div v-for="domain in whitelist" :key="domain" class="pip-domain-item">
           <span class="pip-domain-text">{{ domain }}</span>
-          <button @click="removeDomain(domain)" class="pip-btn-remove">
+          <button @click="() => removeDomain(domain)" class="pip-btn-remove">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -106,7 +100,7 @@ function saveShortcut() {
       <div class="pip-domain-list" v-else>
         <div v-for="domain in blacklist" :key="domain" class="pip-domain-item">
           <span class="pip-domain-text">{{ domain }}</span>
-          <button @click="removeDomain(domain)" class="pip-btn-remove">
+          <button @click="() => removeDomain(domain)" class="pip-btn-remove">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -118,26 +112,6 @@ function saveShortcut() {
         <div v-if="blacklist.length === 0" class="pip-empty-list">
           黑名单为空，所有网站均可使用画中画
         </div>
-      </div>
-    </div>
-
-    <div class="pip-settings-section">
-      <div class="pip-settings-title">
-        <div class="pip-settings-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </div>
-        快捷键设置
-      </div>
-      <div class="pip-shortcut-container">
-        <input
-          v-model="shortcut"
-          @change="saveShortcut"
-          class="pip-input pip-shortcut-input"
-        />
-        <div class="pip-tip">实际生效以浏览器扩展快捷键设置为准</div>
       </div>
     </div>
   </div>
@@ -308,24 +282,6 @@ function saveShortcut() {
 
 .pip-btn-remove:hover {
   background: #FEE2E2;
-}
-
-.pip-shortcut-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.pip-shortcut-input {
-  width: 120px;
-  text-align: center;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.pip-tip {
-  font-size: 12px;
-  color: #6B7280;
-  margin-top: 8px;
 }
 
 .pip-empty-list {

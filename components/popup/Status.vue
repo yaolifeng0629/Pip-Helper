@@ -51,13 +51,10 @@ const props = defineProps<Props>();
 
     <!-- 快捷键提示 -->
     <div class="pip-shortcut-tip">
+      <div class="pip-shortcut-header">快捷键提示</div>
       <div class="pip-shortcut-item">
         <kbd>Alt+P</kbd>
         <span>激活画中画</span>
-      </div>
-      <div class="pip-shortcut-item">
-        <kbd>Alt+B</kbd>
-        <span>返回原标签页</span>
       </div>
       <div class="pip-shortcut-item" v-if="videoCount > 1">
         <kbd>←</kbd><kbd>→</kbd>
@@ -168,6 +165,12 @@ const props = defineProps<Props>();
   border: 1px solid #E5E7EB;
 }
 
+.pip-shortcut-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
 .pip-shortcut-item {
   display: flex;
   align-items: center;
@@ -182,6 +185,12 @@ const props = defineProps<Props>();
 
 .pip-shortcut-item span {
   margin-left: 8px;
+}
+
+.pip-shortcut-note {
+  font-size: 10px;
+  color: #6B7280;
+  text-align: center;
 }
 
 kbd {
