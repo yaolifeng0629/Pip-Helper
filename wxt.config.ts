@@ -12,19 +12,19 @@ export default defineConfig({
         action: {
             default_popup: 'entrypoints/popup/index.html',
             default_icon: {
-                '16': 'icon/icon16.png',
-                '32': 'icon/icon32.png',
-                '48': 'icon/icon48.png',
-                '96': 'icon/icon96.png',
-                '128': 'icon/icon128.png',
+                '16': 'icon/16.png',
+                '32': 'icon/32.png',
+                '48': 'icon/48.png',
+                '96': 'icon/96.png',
+                '128': 'icon/128.png',
             },
         },
         icons: {
-            '16': 'icon/icon16.png',
-            '32': 'icon/icon32.png',
-            '48': 'icon/icon48.png',
-            '96': 'icon/icon96.png',
-            '128': 'icon/icon128.png',
+            '16': 'icon/16.png',
+            '32': 'icon/32.png',
+            '48': 'icon/48.png',
+            '96': 'icon/96.png',
+            '128': 'icon/128.png',
         },
         commands: {
             'activate-pip': {
