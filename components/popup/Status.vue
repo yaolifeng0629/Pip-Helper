@@ -74,7 +74,7 @@ const props = defineProps<Props>();
 }
 
 .pip-status-text {
-  width: 100%;
+  width: 92%;
   margin-bottom: 16px;
   color: #4B5563;
   font-size: 14px;
@@ -157,7 +157,7 @@ const props = defineProps<Props>();
 }
 
 .pip-shortcut-tip {
-  width: 100%;
+  width: 92%;
   margin-top: 20px;
   padding: 12px;
   background: #F9FAFB;

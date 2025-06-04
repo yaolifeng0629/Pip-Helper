@@ -133,13 +133,19 @@ export default defineBackground(() => {
    */
   async function updateBadge(tabId: number, count: number): Promise<void> {
     try {
+
       await browser.action.setBadgeText({
         text: count > 0 ? String(count) : '',
         tabId,
       });
 
+      await browser.action.setBadgeTextColor({
+        color: '#FFFFFF',
+        tabId,
+      });
+
       await browser.action.setBadgeBackgroundColor({
-        color: '#4285f4',
+        color: '#F62800',
         tabId,
       });
     } catch (error) {

@@ -139,7 +139,7 @@ body {
 
 /* 组件样式 */
 .pip-popup {
-  min-width: 340px;
+  min-width: 380px;
   max-width: 380px;
   background: #F9FAFB;
   overflow: hidden;

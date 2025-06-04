@@ -4,7 +4,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
     modules: ['@wxt-dev/module-vue'],
     manifest: {
-        name: '画中画助手',
+        name: 'Pip-Helper - 画中画助手',
         description: '一键激活网页视频画中画模式，支持多平台视频网站',
         version: '1.0.0',
         permissions: ['scripting', 'activeTab', 'storage'],
