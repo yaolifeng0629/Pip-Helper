@@ -2,6 +2,15 @@
 
 一款简单易用的浏览器扩展，帮助您在任何网页上使用画中画功能观看视频。
 
+## 关于作者
+
+-   作者：[Immerse](https://yaolifeng.com)
+-   博客：[https://yaolifeng.com](https://yaolifeng.com)
+-   公众号：[沉浸式趣谈](https://yaolifeng.com/sponsor/wx_public_account.webp)
+-   Github: [https://github.com/yaolifeng0629](https://github.com/yaolifeng0629)
+-   个人介绍：一名独立开发者、内容创作者。分享关于`编程`、`独立开发`、`AI干货`、`开源`、`个人思考`等有趣的内容。
+
+
 ## 功能特点
 
 -   **一键激活画中画**：通过点击工具栏图标或使用快捷键快速将视频切换到画中画模式
@@ -51,3 +60,10 @@ pnpm zip
 
 -   Chrome / Edge / Opera / Brave 等基于 Chromium 的浏览器
 -   Firefox (使用 `pnpm dev:firefox` 和 `pnpm build:firefox` 命令)
+
+## 💰 打赏
+
+如果觉得这个插件对你有帮助，欢迎打赏我，你的支持是我最大的动力。
+
+<img src="https://yaolifeng.com/sponsor/weixin.png" alt="微信打赏" width="200" height="200">
+<img src="https://yaolifeng.com/sponsor/ali.png" alt="支付宝打赏" width="200" height="200">
