@@ -35,7 +35,7 @@ const props = defineProps<Props>();
           <rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      一键画中画
+      Activate PiP
     </button>
 
     <!-- 多视频选择按钮 -->
@@ -46,19 +46,19 @@ const props = defineProps<Props>();
           <rect x="10" y="10" width="8" height="6" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      选择视频 ({{ videoCount }})
+      Select Video ({{ videoCount }})
     </button>
 
     <!-- 快捷键提示 -->
     <div class="pip-shortcut-tip">
-      <div class="pip-shortcut-header">快捷键提示</div>
+      <div class="pip-shortcut-header">Keyboard Shortcuts</div>
       <div class="pip-shortcut-item">
         <kbd>Alt+P</kbd>
-        <span>激活画中画</span>
+        <span>Activate PiP</span>
       </div>
       <div class="pip-shortcut-item" v-if="videoCount > 1">
         <kbd>←</kbd><kbd>→</kbd>
-        <span>切换视频</span>
+        <span>Switch Videos</span>
       </div>
     </div>
   </div>

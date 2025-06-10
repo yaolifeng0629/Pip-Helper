@@ -47,7 +47,7 @@ export async function getUserSettings(): Promise<UserSettings> {
       shortcut: data.pip_shortcut || DEFAULT_SETTINGS.shortcut
     };
   } catch (error) {
-    console.error('获取用户设置失败:', error);
+    console.error('Failed to get user settings:', error);
     return DEFAULT_SETTINGS;
   }
 }
@@ -75,7 +75,7 @@ export async function saveUserSettings(settings: Partial<UserSettings>): Promise
   try {
     await browser.storage.local.set(data);
   } catch (error) {
-    console.error('保存用户设置失败:', error);
+    console.error('Failed to save user settings:', error);
   }
 }
 

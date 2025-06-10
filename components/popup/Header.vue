@@ -19,7 +19,7 @@ const props = defineProps<Props>();
           <rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      <span class="pip-title-text">画中画助手</span>
+      <span class="pip-title-text">PiP Assistant</span>
     </div>
     <button class="pip-settings-btn" @click="onToggleSettings">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

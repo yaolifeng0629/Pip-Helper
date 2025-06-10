@@ -29,11 +29,11 @@ export function showVideoPicker(videos: HTMLVideoElement[]): void {
   `;
 
   // 添加标题
-  picker.innerHTML = `<b>选择要画中画的视频：</b><br>`;
+  picker.innerHTML = `<b>Select a video for PiP:</b><br>`;
 
   // 为每个视频创建按钮
   videos.forEach((v, i) => {
-    const label = v.currentSrc || v.src || `视频${i+1}`;
+    const label = v.currentSrc || v.src || `Video ${i+1}`;
     const btn = document.createElement('button');
     btn.textContent = label.length > 60 ? label.slice(0, 60) + '...' : label;
     btn.style.cssText = `
@@ -60,7 +60,7 @@ export function showVideoPicker(videos: HTMLVideoElement[]): void {
 
   // 添加取消按钮
   const cancel = document.createElement('button');
-  cancel.textContent = '取消';
+  cancel.textContent = 'Cancel';
   cancel.style.cssText = `
     display: block;
     width: 100%;

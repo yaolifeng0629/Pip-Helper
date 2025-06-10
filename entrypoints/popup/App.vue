@@ -32,8 +32,8 @@ onMounted(async () => {
   browser.runtime.onMessage.addListener((msg) => {
     if (msg?.type === 'probe-result') {
       status.value = msg.hasVideo
-        ? `检测到 ${msg.count || 0} 个可用视频`
-        : '未检测到视频';
+        ? `Detected ${msg.count || 0} available videos`
+        : 'No videos detected';
 
       // 更新视频数量
       videoCount.value = msg.count || 0;
@@ -73,7 +73,7 @@ async function activatePiP() {
   // 检查当前网站是否在黑白名单中
   const allowed = await isUrlAllowed(tab.url || '');
   if (!allowed) {
-    status.value = '当前网站已被禁用';
+    status.value = 'PiP is disabled for this website';
     return;
   }
 
@@ -89,7 +89,7 @@ async function showVideoPicker() {
   // 检查当前网站是否在黑白名单中
   const allowed = await isUrlAllowed(tab.url || '');
   if (!allowed) {
-    status.value = '当前网站已被禁用';
+    status.value = 'This website is disabled';
     return;
   }
 

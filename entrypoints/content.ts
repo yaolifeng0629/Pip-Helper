@@ -85,7 +85,7 @@ export default defineContentScript({
         // 转为 data URL
         return canvas.toDataURL('image/jpeg', 0.7);
       } catch (e) {
-        console.error('创建视频缩略图失败:', e);
+        console.error('Failed to create video thumbnail:', e);
         return '';
       }
     }
@@ -125,7 +125,7 @@ export default defineContentScript({
 
         // 如果没找到标题，使用默认标题
         if (!title) {
-          title = `视频 ${index + 1}${video.currentTime > 0 ? ' (正在播放)' : ''}`;
+          title = `Video ${index + 1}${video.currentTime > 0 ? ' (Playing)' : ''}`;
         }
 
         // 获取视频尺寸
@@ -242,7 +242,7 @@ export default defineContentScript({
         color: #333;
         padding-right: 32px;
       `;
-      title.textContent = '选择要使用画中画模式的视频';
+      title.textContent = 'Select a video for Picture-in-Picture mode';
       content.appendChild(title);
 
       // 视频列表
@@ -290,7 +290,7 @@ export default defineContentScript({
             justify-content: center;
             color: #999;
             font-size: 12px;
-          ">无预览</div>
+          ">No preview</div>
         `;
 
         if (info.thumbnail) {
@@ -324,7 +324,7 @@ export default defineContentScript({
                 padding: 2px 6px;
                 border-radius: 4px;
                 font-size: 12px;
-              ">正在播放</span>` : ''}
+              ">Playing</span>` : ''}
             </div>
           `;
         }
@@ -336,14 +336,14 @@ export default defineContentScript({
             ${info.title}
           </div>
           <div style="font-size: 12px; color: #888;">
-            ${info.dimensions ? `分辨率: ${info.dimensions}` : ''}
+            ${info.dimensions ? `Resolution: ${info.dimensions}` : ''}
           </div>
         `;
 
         // 点击激活画中画
         videoItem.onclick = () => {
           info.video.requestPictureInPicture().catch(() => {
-            showToast('无法激活画中画模式', 'error');
+            showToast('Unable to activate Picture-in-Picture mode', 'error');
           });
           picker.remove();
         };
@@ -362,7 +362,7 @@ export default defineContentScript({
         text-align: center;
       `;
       tipText.innerHTML = `
-        <div>提示: 进入画中画后，可使用<kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">←</kbd> <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">→</kbd>方向键切换视频</div>
+        <div>Tip: When in PiP mode, use <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">←</kbd> <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">→</kbd> arrow keys to switch videos</div>
       `;
       content.appendChild(tipText);
 
@@ -391,7 +391,7 @@ export default defineContentScript({
         // 检查当前网站是否在黑名单中
         const isBlacklisted = await checkIfDomainIsBlacklisted();
         if (isBlacklisted) {
-          showToast('请将当前网站域名从黑名单中移除，再进行操作！', 'error');
+          showToast('Please remove this website from the blacklist to use PiP!', 'error');
           return;
         }
 
@@ -435,7 +435,7 @@ export default defineContentScript({
         // 检查当前网站是否在黑名单中
         const isBlacklisted = await checkIfDomainIsBlacklisted();
         if (isBlacklisted) {
-          showToast('请将当前网站域名从黑名单中移除，再进行操作！', 'error');
+          showToast('Please remove this website from the blacklist to use PiP!', 'error');
           return;
         }
 
@@ -452,7 +452,7 @@ export default defineContentScript({
 
       // 显示提示消息
       else if (msg?.type === 'show-toast') {
-        showToast(msg.reason || '操作失败', 'error');
+        showToast(msg.reason || 'Operation failed', 'error');
       }
     });
 
@@ -468,7 +468,7 @@ export default defineContentScript({
           addPipControls();
         }, 100);
       } catch (error) {
-        console.error('添加画中画控件失败:', error);
+        console.error('Failed to add PiP controls:', error);
       }
 
       // 监听视频状态变化并同步

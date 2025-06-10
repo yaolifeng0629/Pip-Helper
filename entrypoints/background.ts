@@ -45,9 +45,9 @@ export default defineBackground(() => {
   function handleRuntimeMessage(msg: any, sender: any): void {
     // 处理画中画错误
     if (msg?.type === 'pip-error') {
-      let reason = '未知错误';
-      if (msg.reason === 'no-video') reason = '未检测到可用视频';
-      if (msg.reason === 'not-allowed') reason = '该视频不支持画中画';
+      let reason = 'Unknown error';
+      if (msg.reason === 'no-video') reason = 'No available videos detected';
+      if (msg.reason === 'not-allowed') reason = 'This video does not support PiP';
 
       if (sender.tab?.id) {
         browser.tabs.sendMessage(sender.tab.id, { type: 'show-toast', reason });
@@ -94,7 +94,7 @@ export default defineBackground(() => {
       // 视频上的右键菜单
       browser.contextMenus.create({
         id: 'pip-toggle',
-        title: '画中画播放',
+        title: 'Play in Picture-in-Picture',
         contexts: ['video'],
       });
 
@@ -105,7 +105,7 @@ export default defineBackground(() => {
         }
       });
     } catch (error) {
-      console.error('创建右键菜单失败', error);
+      console.error('Failed to create context menu', error);
     }
   }
 
@@ -122,7 +122,7 @@ export default defineBackground(() => {
       });
     } catch (error) {
       // 某些环境可能不支持 setIcon
-      console.error('更新图标失败:', error);
+      console.error('Failed to update icon:', error);
     }
   }
 
@@ -149,7 +149,7 @@ export default defineBackground(() => {
         tabId,
       });
     } catch (error) {
-      console.error('更新角标失败:', error);
+      console.error('Failed to update badge:', error);
     }
   }
 
