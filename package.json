@@ -1,8 +1,8 @@
 {
-  "name": "wxt-vue-starter",
-  "description": "manifest.json description",
+  "name": "Pip-Helper - Picture-in-Picture Assistant",
+  "description": "A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage.",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
