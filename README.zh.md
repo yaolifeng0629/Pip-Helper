@@ -1,6 +1,8 @@
-# Pip-Helper - 画中画助手
-
-一款简单易用的浏览器扩展，帮助您在任何网页上使用画中画功能观看视频。
+<p align="center">
+    <img src="/public/icon/128.png" alt="Pip-Helper" width="128" height="128">
+    <h1 align="center">Pip-Helper - 画中画助手</h1>
+    <p align="center">一款简单易用的浏览器扩展，帮助您在任何网页上使用画中画功能观看视频。</p>
+</p>
 
 ## 关于作者
 

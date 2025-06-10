@@ -1,6 +1,8 @@
-# Pip-Helper - Picture-in-Picture Assistant
-
-A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage.
+<p align="center">
+    <img src="/public/icon/128.png" alt="Pip-Helper" width="128" height="128">
+    <h1 align="center">Pip-Helper - Picture-in-Picture Assistant</h1>
+    <p align="center">A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage.</p>
+</p>
 
 ## About the Author
 
