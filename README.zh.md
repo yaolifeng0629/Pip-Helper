@@ -58,6 +58,10 @@
 -   Chrome / Edge / Opera / Brave 等基于 Chromium 的浏览器
 -   Firefox (使用 `pnpm dev:firefox` 和 `pnpm build:firefox` 命令)
 
+## 隐私政策
+
+我们非常重视您的隐私。您可以在[这里](/privacy/PRIVACY_POLICY.zh.md)阅读我们完整的隐私政策。
+
 ## 打赏
 
 如果觉得这个插件对你有帮助，欢迎打赏我，你的支持是我最大的动力。

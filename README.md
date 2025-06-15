@@ -60,6 +60,10 @@
 -   Chrome / Edge / Opera / Brave and other Chromium-based browsers
 -   Firefox (use the `pnpm dev:firefox` and `pnpm build:firefox` commands)
 
+## Privacy Policy
+
+We take your privacy seriously. You can read our full privacy policy [here](/privacy/PRIVACY_POLICY.md).
+
 ## Donate
 
 If you find this extension helpful, feel free to donate. Your support is my greatest motivation.
