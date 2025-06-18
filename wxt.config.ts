@@ -7,7 +7,7 @@ export default defineConfig({
         name: 'Pip-Helper - Picture-in-Picture Assistant',
         description: 'A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage',
         version: '0.0.1',
-        permissions: ['scripting', 'activeTab', 'storage'],
+        permissions: ['activeTab', 'storage'],
         host_permissions: ['<all_urls>'],
         action: {
             default_popup: 'entrypoints/popup/index.html',

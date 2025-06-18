@@ -45,7 +45,6 @@ The extension requires certain browser permissions to function:
 
 - **`storage`**: To save your settings locally
 - **`activeTab`**: To detect and interact with video elements on the current page
-- **`scripting`**: To enhance video elements with Picture-in-Picture functionality
 - **`<all_urls>`**: To enable the extension to work on all websites you visit (subject to your whitelist/blacklist settings)
 
 ## Third-Party Services
