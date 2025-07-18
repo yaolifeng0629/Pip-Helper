@@ -1,6 +1,6 @@
 <!-- 状态组件 - 显示当前页面视频状态和操作按钮 -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { i18n } from '../../utils/i18n';
 
 // 组件属性
 interface Props {
@@ -35,7 +35,7 @@ const props = defineProps<Props>();
           <rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      Activate PiP
+      {{ i18n.t('popup.activate') }}
     </button>
 
     <!-- 多视频选择按钮 -->
@@ -46,19 +46,19 @@ const props = defineProps<Props>();
           <rect x="10" y="10" width="8" height="6" rx="1" fill="currentColor"/>
         </svg>
       </div>
-      Select Video ({{ videoCount }})
+      {{ i18n.t('popup.selectVideo', { count: videoCount }) }}
     </button>
 
     <!-- 快捷键提示 -->
     <div class="pip-shortcut-tip">
-      <div class="pip-shortcut-header">Keyboard Shortcuts</div>
+      <div class="pip-shortcut-header">{{ i18n.t('keyboardShortcuts') }}</div>
       <div class="pip-shortcut-item">
         <kbd>Alt+P</kbd>
-        <span>Activate PiP</span>
+        <span>{{ i18n.t('shortcut.activate') }}</span>
       </div>
       <div class="pip-shortcut-item" v-if="videoCount > 1">
         <kbd>←</kbd><kbd>→</kbd>
-        <span>Switch Videos</span>
+        <span>{{ i18n.t('shortcut.next') }}</span>
       </div>
     </div>
   </div>

@@ -162,8 +162,76 @@ export default defineContentScript({
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
+    // 获取当前语言设置
+    async function getCurrentLanguage(): Promise<string> {
+      try {
+        // 使用Chrome扩展存储API
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          const result = await chrome.storage.local.get('pip-helper-language');
+          if (result['pip-helper-language']) {
+            return result['pip-helper-language'];
+          }
+        }
+      } catch (error) {
+        console.error('Error getting language from storage:', error);
+      }
+      
+      // 回退到localStorage
+      return localStorage.getItem('pip-helper-language') || 
+             (navigator.language.startsWith('zh') ? 
+               (navigator.language.startsWith('zh-CN') || navigator.language.startsWith('zh-SG') ? 'zh-CN' : 'zh-TW') : 
+               'en');
+    }
+
+    // 获取翻译文本的辅助函数
+    async function t(key: string, params?: Record<string, string | number>): Promise<string> {
+      const translations: Record<string, Record<string, string>> = {
+        'videoPicker.title': {
+          'zh-CN': '选择视频进入画中画模式',
+          'zh-TW': '選擇影片進入畫中畫模式',
+          'en': 'Select a video for Picture-in-Picture mode'
+        },
+        'videoPicker.noPreview': {
+          'zh-CN': '无预览',
+          'zh-TW': '無預覽',
+          'en': 'No preview'
+        },
+        'videoPicker.playing': {
+          'zh-CN': '播放中',
+          'zh-TW': '播放中',
+          'en': 'Playing'
+        },
+        'videoPicker.resolution': {
+          'zh-CN': '分辨率：',
+          'zh-TW': '解析度：',
+          'en': 'Resolution:'
+        },
+        'videoPicker.tip': {
+          'zh-CN': '提示：使用 ← → 键快速切换视频',
+          'zh-TW': '提示：使用 ← → 鍵快速切換影片',
+          'en': 'Tip: Use ← → keys to quickly switch videos'
+        },
+        'videoPicker.cancel': {
+          'zh-CN': '取消',
+          'zh-TW': '取消',
+          'en': 'Cancel'
+        }
+      };
+
+      const currentLang = await getCurrentLanguage();
+      const message = translations[key]?.[currentLang] || translations[key]?.['en'] || key;
+      
+      if (params) {
+        return message.replace(/\{(\w+)\}/g, (match, param) => {
+          return String(params[param] ?? match);
+        });
+      }
+      
+      return message;
+    }
+
     // 自定义视频选择器
-    function showCustomVideoPicker(videoInfos: any[]) {
+    async function showCustomVideoPicker(videoInfos: any[]) {
       // 移除已有选择器
       const existingPicker = document.getElementById('pip-video-picker');
       if (existingPicker) existingPicker.remove();
@@ -242,7 +310,7 @@ export default defineContentScript({
         color: #333;
         padding-right: 32px;
       `;
-      title.textContent = 'Select a video for Picture-in-Picture mode';
+      title.textContent = await t('videoPicker.title');
       content.appendChild(title);
 
       // 视频列表
@@ -253,7 +321,14 @@ export default defineContentScript({
         gap: 16px;
       `;
 
-      // 添加视频项
+      // 添加视频项 - 使用 Promise.all 处理异步翻译
+      const translations = await Promise.all([
+        t('videoPicker.noPreview'),
+        t('videoPicker.playing'),
+        t('videoPicker.resolution')
+      ]);
+      const [noPreviewText, playingText, resolutionText] = translations;
+
       videoInfos.forEach((info, i) => {
         const videoItem = document.createElement('div');
         videoItem.style.cssText = `
@@ -290,7 +365,7 @@ export default defineContentScript({
             justify-content: center;
             color: #999;
             font-size: 12px;
-          ">No preview</div>
+          ">${noPreviewText}</div>
         `;
 
         if (info.thumbnail) {
@@ -324,7 +399,7 @@ export default defineContentScript({
                 padding: 2px 6px;
                 border-radius: 4px;
                 font-size: 12px;
-              ">Playing</span>` : ''}
+              ">${playingText}</span>` : ''}
             </div>
           `;
         }
@@ -336,7 +411,7 @@ export default defineContentScript({
             ${info.title}
           </div>
           <div style="font-size: 12px; color: #888;">
-            ${info.dimensions ? `Resolution: ${info.dimensions}` : ''}
+            ${info.dimensions ? `${resolutionText} ${info.dimensions}` : ''}
           </div>
         `;
 
@@ -361,8 +436,9 @@ export default defineContentScript({
         color: #888;
         text-align: center;
       `;
+      const tipTextContent = await t('videoPicker.tip');
       tipText.innerHTML = `
-        <div>Tip: When in PiP mode, use <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">←</kbd> <kbd style="background:#f0f0f0;padding:2px 5px;border-radius:3px;border:1px solid #ddd;">→</kbd> arrow keys to switch videos</div>
+        <div>${tipTextContent}</div>
       `;
       content.appendChild(tipText);
 

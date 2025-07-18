@@ -2,6 +2,41 @@
  * UI相关工具函数
  */
 
+// 获取当前语言设置
+function getCurrentLanguage(): string {
+  return localStorage.getItem('pip-helper-language') || 
+         (navigator.language.startsWith('zh') ? 
+           (navigator.language.startsWith('zh-CN') || navigator.language.startsWith('zh-SG') ? 'zh-CN' : 'zh-TW') : 
+           'en');
+}
+
+// 获取翻译文本的辅助函数
+function t(key: string, params?: Record<string, string | number>): string {
+  const translations: Record<string, Record<string, string>> = {
+    'videoPicker.selectVideo': {
+      'zh-CN': '选择视频：',
+      'zh-TW': '選擇影片：',
+      'en': 'Select a video for PiP:'
+    },
+    'videoPicker.cancel': {
+      'zh-CN': '取消',
+      'zh-TW': '取消',
+      'en': 'Cancel'
+    }
+  };
+
+  const currentLang = getCurrentLanguage();
+  const message = translations[key]?.[currentLang] || translations[key]?.['en'] || key;
+  
+  if (params) {
+    return message.replace(/\{(\w+)\}/g, (match, param) => {
+      return String(params[param] ?? match);
+    });
+  }
+  
+  return message;
+}
+
 /**
  * 弹出多视频选择器，供用户手动选择要画中画的视频
  * @param videos 视频元素数组
@@ -29,7 +64,7 @@ export function showVideoPicker(videos: HTMLVideoElement[]): void {
   `;
 
   // 添加标题
-  picker.innerHTML = `<b>Select a video for PiP:</b><br>`;
+  picker.innerHTML = `<b>${t('videoPicker.selectVideo')}</b><br>`;
 
   // 为每个视频创建按钮
   videos.forEach((v, i) => {
@@ -60,7 +95,7 @@ export function showVideoPicker(videos: HTMLVideoElement[]): void {
 
   // 添加取消按钮
   const cancel = document.createElement('button');
-  cancel.textContent = 'Cancel';
+  cancel.textContent = t('videoPicker.cancel');
   cancel.style.cssText = `
     display: block;
     width: 100%;
