@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { UserSettings } from '../../utils/storage';
+import { i18n } from '../../utils/i18n';
 
 // 组件属性
 interface Props {
@@ -16,6 +17,21 @@ const whitelist = ref<string[]>(props.settings.whitelist);
 const blacklist = ref<string[]>(props.settings.blacklist);
 const newDomain = ref('');
 const isWhitelistMode = ref(true);
+
+// 语言选项
+const languages = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'en', label: 'English' }
+];
+
+const currentLanguage = ref(i18n.currentLanguage.value);
+
+// 语言切换
+function handleLanguageChange(lang: string) {
+  i18n.setLanguage(lang as any);
+  currentLanguage.value = lang;
+}
 
 // 添加域名到黑/白名单
 function addDomain() {
@@ -50,6 +66,42 @@ function removeDomain(domain: string) {
 
 <template>
     <div class="pip-settings">
+        <!-- 语言设置 -->
+        <div class="pip-settings-section">
+            <div class="pip-settings-title">
+                <div class="pip-settings-icon">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                </div>
+                {{ i18n.t('settings.language') }}
+            </div>
+            <div class="pip-language-selector">
+                <select 
+                    v-model="currentLanguage" 
+                    @change="handleLanguageChange(currentLanguage)"
+                    class="pip-select"
+                >
+                    <option v-for="lang in languages" :key="lang.value" :value="lang.value">
+                        {{ lang.label }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 黑白名单设置 -->
         <div class="pip-settings-section">
             <div class="pip-settings-title">
                 <div class="pip-settings-icon">
@@ -69,27 +121,27 @@ function removeDomain(domain: string) {
                         ></path>
                     </svg>
                 </div>
-                Blacklist / Whitelist
+                {{ i18n.t('settings.blacklist') }} / {{ i18n.t('settings.whitelist') }}
             </div>
             <div class="pip-radio-group">
                 <label class="pip-radio-label">
                     <input type="radio" v-model="isWhitelistMode" :value="true" class="pip-radio" />
-                    <span class="pip-radio-text">Whitelist</span>
+                    <span class="pip-radio-text">{{ i18n.t('settings.whitelist') }}</span>
                 </label>
                 <label class="pip-radio-label">
                     <input type="radio" v-model="isWhitelistMode" :value="false" class="pip-radio" />
-                    <span class="pip-radio-text">Blacklist</span>
+                    <span class="pip-radio-text">{{ i18n.t('settings.blacklist') }}</span>
                 </label>
             </div>
 
             <div class="pip-domain-add">
                 <input
                     v-model="newDomain"
-                    placeholder="Enter domain, e.g.: bilibili.com"
+                    :placeholder="i18n.t('settings.domainPlaceholder')"
                     class="pip-input"
                     @keyup.enter="addDomain"
                 />
-                <button @click="addDomain" class="pip-btn">Add</button>
+                <button @click="addDomain" class="pip-btn">{{ i18n.t('settings.add') }}</button>
             </div>
 
             <div class="pip-domain-list" v-if="isWhitelistMode">
@@ -116,7 +168,7 @@ function removeDomain(domain: string) {
                     </button>
                 </div>
                 <div v-if="whitelist.length === 0" class="pip-empty-list">
-                    Whitelist is empty, PiP can be used on all websites
+                    {{ i18n.t('settings.whitelistEmpty') }}
                 </div>
             </div>
 
@@ -144,7 +196,7 @@ function removeDomain(domain: string) {
                     </button>
                 </div>
                 <div v-if="blacklist.length === 0" class="pip-empty-list">
-                    Blacklist is empty, PiP can be used on all websites
+                    {{ i18n.t('settings.blacklistEmpty') }}
                 </div>
             </div>
         </div>
@@ -324,5 +376,27 @@ function removeDomain(domain: string) {
     padding: 12px;
     text-align: left;
     font-size: 14px;
+}
+
+.pip-language-selector {
+    margin-bottom: 16px;
+}
+
+.pip-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    background: #f9fafb;
+    cursor: pointer;
+}
+
+.pip-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 </style>

@@ -1,9 +1,13 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { getUserSettings, saveUserSettings, isUrlAllowed, UserSettings } from '../../utils/storage';
+import { i18n } from '../../utils/i18n';
 import Header from '../../components/popup/Header.vue';
 import Status from '../../components/popup/Status.vue';
 import Settings from '../../components/popup/Settings.vue';
+
+// 初始化i18n
+i18n.loadSavedLanguage();
 
 // 状态变量
 const status = ref('');
@@ -32,8 +36,8 @@ onMounted(async () => {
   browser.runtime.onMessage.addListener((msg) => {
     if (msg?.type === 'probe-result') {
       status.value = msg.hasVideo
-        ? `Detected ${msg.count || 0} available videos`
-        : 'No videos detected';
+        ? i18n.t('status.videoFound', { count: msg.count || 0 })
+        : i18n.t('status.noVideo');
 
       // 更新视频数量
       videoCount.value = msg.count || 0;
@@ -73,7 +77,7 @@ async function activatePiP() {
   // 检查当前网站是否在黑白名单中
   const allowed = await isUrlAllowed(tab.url || '');
   if (!allowed) {
-    status.value = 'PiP is disabled for this website';
+    status.value = i18n.t('popup.disabled');
     return;
   }
 
@@ -89,7 +93,7 @@ async function showVideoPicker() {
   // 检查当前网站是否在黑白名单中
   const allowed = await isUrlAllowed(tab.url || '');
   if (!allowed) {
-    status.value = 'This website is disabled';
+    status.value = i18n.t('popup.disabled');
     return;
   }
 
