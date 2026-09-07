@@ -1,27 +1,54 @@
 {
   "name": "Pip-Helper - Picture-in-Picture Assistant",
+  "displayName": "Pip-Helper - Picture-in-Picture Assistant",
   "description": "A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage.",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "dev:firefox": "wxt -b firefox",
-    "build": "wxt build",
-    "build:firefox": "wxt build -b firefox",
-    "zip": "wxt zip",
-    "zip:firefox": "wxt zip -b firefox",
-    "compile": "vue-tsc --noEmit",
-    "postinstall": "wxt prepare"
+    "dev": "plasmo dev",
+    "dev:firefox": "plasmo dev --target=firefox-mv3",
+    "build": "plasmo build",
+    "build:firefox": "plasmo build --target=firefox-mv3",
+    "zip": "plasmo package",
+    "zip:firefox": "plasmo package --target=firefox-mv3",
+    "compile": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "plasmo": "0.90.5",
     "plyr": "^3.7.8",
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@wxt-dev/module-vue": "^1.0.2",
+    "@types/chrome": "^0.2.9",
+    "@vue/compiler-sfc": "^3.5.13",
     "typescript": "5.6.3",
-    "vue-tsc": "^2.2.10",
-    "wxt": "^0.20.6"
+    "vue-tsc": "^2.2.10"
+  },
+  "manifest": {
+    "permissions": ["activeTab", "storage", "contextMenus"],
+    "host_permissions": ["<all_urls>"],
+    "commands": {
+      "activate-pip": {
+        "suggested_key": {
+          "default": "Alt+P",
+          "mac": "Alt+P"
+        },
+        "description": "Activate PiP"
+      },
+      "return-to-tab": {
+        "suggested_key": {
+          "default": "Alt+B",
+          "mac": "Alt+B"
+        },
+        "description": "Return to Tab"
+      }
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["assets/pip-icons/*.png"],
+        "matches": ["<all_urls>"]
+      }
+    ]
   }
 }

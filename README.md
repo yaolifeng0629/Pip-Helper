@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="/public/icon/128.png" alt="Pip-Helper" width="128" height="128">
+    <img src="assets/icon.png" alt="Pip-Helper" width="128" height="128">
     <h1 align="center">Pip-Helper - Picture-in-Picture Assistant</h1>
     <p align="center">
         <a href="README.md">English</a> | <a href="README.zh.md">简体中文</a>
@@ -17,12 +17,11 @@
 
 ## Features
 
--   **One-click Picture-in-Picture Activation**: Quickly switch videos to picture-in-picture mode by clicking the toolbar icon or using a keyboard shortcut
--   **Multi-platform Support**: Compatible with all major video streaming websites
--   **Blacklist and Whitelist**: Support for setting website blacklists and whitelists, customizing which websites allow or prohibit the use of picture-in-picture functionality
--   **Multiple Video Selection**: When there are multiple videos on a page, you can choose which one to view in picture-in-picture mode
--   **Browser Background Display**: After closing the browser, the picture-in-picture window can still be displayed and continue playing until manually closed by the user
--   **Picture-in-Picture Quick Switching**: Use the `←` `→` shortcut keys to quickly switch to the next or previous video, making it convenient to switch between multiple videos
+-   **Reliable Native Picture-in-Picture**: Start or exit native PiP from the popup, context menu, or keyboard shortcut
+-   **Visible-video Selection**: Prioritizes the visible, currently playing video and asks you to choose when the page has equally likely candidates
+-   **Current-site Toggle**: Allow or restrict the active website directly from the popup
+-   **Clear Site Access Modes**: Choose either allow-by-default with restricted exceptions or block-by-default with allowed exceptions
+-   **Live Status**: The popup reflects dynamic video discovery, active PiP sessions, unavailable pages, and unsupported browsers
 
 ### Supported Websites
 
@@ -52,13 +51,16 @@
 ## Keyboard Shortcuts
 
 -   `Alt+P`: Activate picture-in-picture mode
--   `ArrowLeft`: Switch to the previous video
--   `ArrowRight`: Switch to the next video
+-   `Alt+B`: Return focus to the active browser tab
 
 ## Browser Compatibility
 
 -   Chrome / Edge / Opera / Brave and other Chromium-based browsers
 -   Firefox (use the `pnpm dev:firefox` and `pnpm build:firefox` commands)
+
+## Development
+
+Pip-Helper is built with Plasmo. Use `pnpm dev` for a Chrome MV3 development build, `pnpm build` for production, and the `:firefox` scripts for Firefox MV3.
 
 ## Privacy Policy
 
