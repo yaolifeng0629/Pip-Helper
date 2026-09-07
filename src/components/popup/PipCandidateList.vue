@@ -7,6 +7,7 @@ defineProps<{
   candidates: PipCandidatePreview[];
   busy: boolean;
   onSelect: (candidateId: string) => void;
+  onShowAll: () => void;
 }>();
 
 const failedPreviews = ref(new Set<string>());
@@ -24,7 +25,7 @@ function hideBrokenPreview(candidateId: string): void {
     </div>
     <div class="candidate-items">
       <button
-        v-for="candidate in candidates"
+        v-for="candidate in candidates.slice(0, 2)"
         :key="candidate.id"
         type="button"
         class="candidate-card"
@@ -50,6 +51,15 @@ function hideBrokenPreview(candidateId: string): void {
         </span>
       </button>
     </div>
+    <button
+      v-if="candidates.length > 2"
+      type="button"
+      class="show-all"
+      :disabled="busy"
+      @click="onShowAll"
+    >
+      {{ i18n.t('popup.showAllVideos', { count: candidates.length }) }}
+    </button>
   </section>
 </template>
 
@@ -57,7 +67,7 @@ function hideBrokenPreview(candidateId: string): void {
 .candidate-list { display: grid; gap: 9px; }
 .list-heading { display: flex; align-items: center; justify-content: space-between; color: #5f5f59; font-size: 11px; font-weight: 650; }
 .list-heading span:last-child { min-width: 20px; padding: 2px 6px; border-radius: 6px; background: #f1f1ed; color: #75756f; text-align: center; }
-.candidate-items { display: grid; gap: 7px; max-height: 254px; overflow: auto; padding-right: 2px; }
+.candidate-items { display: grid; gap: 7px; }
 .candidate-card { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 9px; width: 100%; min-height: 56px; padding: 5px; border: 1px solid #e2e2de; border-radius: 9px; background: #fff; color: #343430; cursor: pointer; text-align: left; }
 .candidate-card:hover:not(:disabled), .candidate-card:focus-visible { border-color: #a8a8a1; background: #fcfcfa; }
 .candidate-card:disabled { cursor: wait; opacity: .6; }
@@ -68,4 +78,7 @@ function hideBrokenPreview(candidateId: string): void {
 .candidate-copy strong { overflow: hidden; color: #30302c; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .candidate-meta { display: flex; align-items: center; gap: 5px; overflow: hidden; color: #777770; font-size: 10px; white-space: nowrap; }
 .playing-badge { padding: 1px 4px; border-radius: 4px; background: #e3f1e9; color: #26734f; font-weight: 650; }
+.show-all { min-height: 34px; border: 1px solid #dfdfda; border-radius: 8px; background: #f8f8f6; color: #51514c; cursor: pointer; font-size: 11px; font-weight: 650; }
+.show-all:hover:not(:disabled), .show-all:focus-visible { border-color: #a8a8a1; background: #f1f1ed; }
+.show-all:disabled { cursor: wait; opacity: .6; }
 </style>

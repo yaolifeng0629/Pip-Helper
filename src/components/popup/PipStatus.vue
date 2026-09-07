@@ -37,7 +37,6 @@ const canTogglePip = computed(() => props.state?.status === 'ready' || props.sta
 const actionLabel = computed(() => props.state?.status === 'active'
   ? i18n.t('popup.exitPip')
   : i18n.t('popup.enterPip'));
-const canChooseVideo = computed(() => (props.state?.candidateCount || 0) > 1 && props.state?.siteAllowed);
 </script>
 
 <template>
@@ -60,22 +59,12 @@ const canChooseVideo = computed(() => (props.state?.candidateCount || 0) > 1 && 
       {{ actionLabel }}
     </button>
 
-    <button
-      v-if="canChooseVideo"
-      type="button"
-      class="candidate-action"
-      :disabled="busy"
-      @click="onChooseVideo"
-    >
-      <span>{{ i18n.t('popup.chooseVideo') }}</span>
-      <span class="candidate-count">{{ state?.candidateCount }}</span>
-    </button>
-
     <PipCandidateList
       v-if="state?.siteAllowed"
       :candidates="state?.candidates || []"
       :busy="busy"
       :on-select="onSelectVideo"
+      :on-show-all="onChooseVideo"
     />
 
     <div class="site-rule">
@@ -162,8 +151,7 @@ const canChooseVideo = computed(() => (props.state?.candidateCount || 0) > 1 && 
   line-height: 1.5;
 }
 
-.primary-action,
-.candidate-action {
+.primary-action {
   width: 100%;
   cursor: pointer;
   font-weight: 650;
@@ -179,35 +167,10 @@ const canChooseVideo = computed(() => (props.state?.candidateCount || 0) > 1 && 
 }
 
 .primary-action:disabled,
-.candidate-action:disabled,
 .site-toggle:disabled {
   cursor: not-allowed;
   opacity: .45;
 }
-
-.candidate-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 40px;
-  padding: 0 12px;
-  border: 1px solid #e0e0db;
-  border-radius: 9px;
-  background: #fff;
-  color: #3d3d38;
-  font-size: 12px;
-}
-
-.candidate-count {
-  min-width: 20px;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: #f1f1ed;
-  color: #6d6d67;
-  font-size: 11px;
-}
-
-.candidate-placeholder { min-height: 40px; }
 
 .site-rule {
   display: flex;

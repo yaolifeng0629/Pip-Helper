@@ -3,7 +3,7 @@
   "displayName": "Pip-Helper - Picture-in-Picture Assistant",
   "description": "A simple and easy-to-use browser extension that helps you watch videos in picture-in-picture mode on any webpage.",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "plasmo dev",
@@ -26,8 +26,14 @@
     "vue-tsc": "^2.2.10"
   },
   "manifest": {
-    "permissions": ["activeTab", "storage", "contextMenus"],
-    "host_permissions": ["<all_urls>"],
+    "permissions": [
+      "activeTab",
+      "storage",
+      "contextMenus"
+    ],
+    "host_permissions": [
+      "<all_urls>"
+    ],
     "commands": {
       "activate-pip": {
         "suggested_key": {
@@ -46,8 +52,12 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["assets/pip-icons/*.png"],
-        "matches": ["<all_urls>"]
+        "resources": [
+          "assets/pip-icons/*.png"
+        ],
+        "matches": [
+          "<all_urls>"
+        ]
       }
     ]
   }

@@ -158,8 +158,7 @@ export async function showCandidatePicker(
 
   const panel = document.createElement('div');
   panel.style.cssText = [
-    'width:min(560px,100%)', 'max-height:min(680px,calc(100vh - 32px))',
-    'overflow:auto', 'border-radius:14px', 'background:#fff', 'padding:18px',
+    'width:min(720px,100%)', 'overflow:hidden', 'border-radius:14px', 'background:#fff', 'padding:16px',
     'box-shadow:0 18px 48px rgba(15, 23, 42, .24)', 'color:#172033',
   ].join(';');
 
@@ -168,18 +167,41 @@ export async function showCandidatePicker(
   title.style.cssText = 'margin:0 0 14px;font-size:16px;line-height:1.3';
   panel.appendChild(title);
 
-  candidates.forEach(candidate => {
+  const candidateList = document.createElement('div');
+  candidateList.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px';
+  panel.appendChild(candidateList);
+
+  const pageSize = 10;
+  let page = 0;
+  const pageCount = Math.ceil(candidates.length / pageSize);
+  const pagination = document.createElement('div');
+  pagination.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px';
+  const previous = document.createElement('button');
+  previous.type = 'button';
+  previous.textContent = '‹';
+  previous.title = 'Previous page';
+  previous.style.cssText = 'width:30px;height:28px;border:1px solid #d8dee8;border-radius:7px;background:#fff;color:#475467;cursor:pointer;font-size:20px;line-height:1';
+  const pageLabel = document.createElement('span');
+  pageLabel.style.cssText = 'min-width:42px;color:#667085;font-size:11px;text-align:center';
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.textContent = '›';
+  next.title = 'Next page';
+  next.style.cssText = previous.style.cssText;
+  pagination.append(previous, pageLabel, next);
+
+  const createCandidateButton = (candidate: VideoCandidate): HTMLButtonElement => {
     const button = document.createElement('button');
     button.type = 'button';
     button.style.cssText = [
-      'width:100%', 'display:grid', 'grid-template-columns:128px minmax(0,1fr)',
-      'gap:12px', 'margin:0 0 10px', 'padding:8px', 'border:1px solid #d8dee8',
+      'width:100%', 'min-width:0', 'display:grid', 'grid-template-columns:72px minmax(0,1fr)',
+      'gap:8px', 'padding:6px', 'border:1px solid #d8dee8',
       'border-radius:10px', 'background:#fff', 'color:#172033', 'cursor:pointer', 'text-align:left',
     ].join(';');
 
     const preview = document.createElement('div');
     preview.style.cssText = [
-      'position:relative', 'height:72px', 'overflow:hidden', 'border-radius:7px',
+      'position:relative', 'height:58px', 'overflow:hidden', 'border-radius:7px',
       'background:#eef1f4', 'display:grid', 'place-items:center', 'color:#667085', 'font-size:11px',
     ].join(';');
     const fallback = document.createElement('span');
@@ -196,10 +218,10 @@ export async function showCandidatePicker(
     }
 
     const content = document.createElement('span');
-    content.style.cssText = 'min-width:0;display:grid;align-content:center;gap:6px';
+    content.style.cssText = 'min-width:0;display:grid;align-content:center;gap:5px';
     const label = document.createElement('strong');
     label.textContent = candidate.title;
-    label.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:650';
+    label.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:650';
     const meta = document.createElement('span');
     meta.textContent = [candidate.isPlaying ? labels.playing : '', candidate.duration, candidate.dimensions].filter(Boolean).join(' · ');
     meta.style.cssText = 'color:#667085;font-size:11px';
@@ -209,8 +231,34 @@ export async function showCandidatePicker(
       backdrop.remove();
       onSelect(candidate);
     });
-    panel.appendChild(button);
+    return button;
+  };
+
+  const renderPage = (): void => {
+    candidateList.replaceChildren();
+    const start = page * pageSize;
+    candidates.slice(start, start + pageSize).forEach(candidate => candidateList.appendChild(createCandidateButton(candidate)));
+    previous.disabled = page === 0;
+    next.disabled = page === pageCount - 1;
+    previous.style.opacity = previous.disabled ? '.45' : '1';
+    next.style.opacity = next.disabled ? '.45' : '1';
+    pageLabel.textContent = `${page + 1} / ${pageCount}`;
+  };
+
+  previous.addEventListener('click', () => {
+    if (page > 0) {
+      page -= 1;
+      renderPage();
+    }
   });
+  next.addEventListener('click', () => {
+    if (page < pageCount - 1) {
+      page += 1;
+      renderPage();
+    }
+  });
+  renderPage();
+  if (pageCount > 1) panel.appendChild(pagination);
 
   const cancel = document.createElement('button');
   cancel.type = 'button';

@@ -50,6 +50,11 @@ const messages: Messages = {
       'zh-TW': '暫無預覽',
       en: 'No preview',
     },
+    'popup.showAllVideos': {
+      'zh-CN': '查看全部 {count} 个视频',
+      'zh-TW': '查看全部 {count} 部影片',
+      en: 'View all {count} videos',
+    },
     'popup.siteAllowed': {
       'zh-CN': '当前网站已允许',
       'zh-TW': '目前網站已允許',

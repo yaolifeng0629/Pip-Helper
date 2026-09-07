@@ -130,17 +130,19 @@ onUnmounted(() => chrome.runtime.onMessage.removeListener(handleStateChanged));
 <template>
   <main class="control-center">
     <MinimalHeader :settings-open="showSettings" :on-toggle-settings="() => { showSettings = !showSettings; }" />
-    <PipStatus
-      :state="state"
-      :busy="busy"
-      :notice="notice"
-      :on-toggle-pip="togglePip"
-      :on-choose-video="chooseVideo"
-      :on-select-video="selectVideo"
-      :on-toggle-site-rule="toggleSiteRule"
-    />
-    <transition name="settings">
-      <PipSettings v-if="showSettings" :settings="settings" :on-save="saveSettings" />
+    <transition name="settings" mode="out-in">
+      <PipSettings v-if="showSettings" key="settings" :settings="settings" :on-save="saveSettings" />
+      <PipStatus
+        v-else
+        key="status"
+        :state="state"
+        :busy="busy"
+        :notice="notice"
+        :on-toggle-pip="togglePip"
+        :on-choose-video="chooseVideo"
+        :on-select-video="selectVideo"
+        :on-toggle-site-rule="toggleSiteRule"
+      />
     </transition>
   </main>
 </template>
@@ -160,6 +162,7 @@ onUnmounted(() => chrome.runtime.onMessage.removeListener(handleStateChanged));
 
 .control-center {
   width: 380px;
+  max-height: 560px;
   overflow: hidden;
   background: #fff;
 }
